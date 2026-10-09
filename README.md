@@ -1,6 +1,6 @@
 # Student Attendance Tracker System
 
-**Graduating 2026 Council — Cebu Technological University (CTU) Naga Extension Campus**
+**Graduating Council — Cebu Technological University (CTU) Naga Extension Campus**
 
 A lightweight, offline-ready web application designed for managing student rosters, scheduling campus events, recording real-time time-in/time-out attendance, and generating analytics and reports over a local network.
 

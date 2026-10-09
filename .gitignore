@@ -1,0 +1,32 @@
+# Backups & Temp files
+*.bak
+*.sql.bak
+*.tmp
+*~
+
+# Environment & Secrets
+.env
+.env.*
+
+# Logs
+*.log
+error_log
+access_log
+
+# OS & IDE
+.vscode/
+.idea/
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# Office & Raw Data sheets (Student PII)
+*.docx
+*.xlsx
+# Keep schema/database template, ignore local data exports if needed
+# 4thYr_*.csv
+
+# Python caches (scripts)
+__pycache__/
+*.py[cod]

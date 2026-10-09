@@ -200,182 +200,295 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schedules</title>
+  <title>Schedules - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=<?php echo filemtime(__DIR__ . '/assets/css/responsive.css'); ?>">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
-      </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a><a href="analytics.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Analytics</a>
-      </nav>
-    </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a><a href="analytics.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Analytics</a>
-    </nav>
-  </header>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'schedules.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid md:grid-cols-2 gap-4 sm:gap-6">
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg font-semibold mb-4"><?php echo $edit_schedule ? 'Edit Schedule' : 'Create Schedule'; ?></h2>
-      <?php if ($error): ?>
-        <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm hidden"><?php echo h($error); ?></div>
-      <?php elseif ($message): ?>
-        <div class="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm hidden"><?php echo h($message); ?></div>
-      <?php endif; ?>
-      <form method="post" class="space-y-4">
-        <input type="hidden" name="action" value="<?php echo $edit_schedule ? 'edit' : 'create'; ?>" />
-        <?php if ($edit_schedule): ?>
-          <input type="hidden" name="id" value="<?php echo $edit_schedule['id']; ?>" />
-        <?php endif; ?>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Title</label>
-          <input name="title" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['title']) : ''; ?>" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Date</label>
-          <input name="schedule_date" type="date" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['schedule_date']) : ''; ?>" />
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
-          <div class="sm:col-span-2 font-medium text-gray-800">Time In Window</div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Time In Start</label>
-            <input name="time_in_start" type="time" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['time_in_start']) : ''; ?>" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Time In End</label>
-            <input name="time_in_end" type="time" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['time_in_end']) : ''; ?>" />
-          </div>
-          <div class="sm:col-span-2 font-medium text-gray-800">Time Out Window</div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Time Out Start</label>
-            <input name="time_out_start" type="time" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['time_out_start']) : ''; ?>" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Time Out End</label>
-            <input name="time_out_end" type="time" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" value="<?php echo $edit_schedule ? h($edit_schedule['time_out_end']) : ''; ?>" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Late Minutes</label>
-          <input id="late_minutes_input" name="late_minutes" type="number" min="0" value="<?php echo $edit_schedule ? (int)$edit_schedule['late_minutes'] : '0'; ?>" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-          <p id="late_time_label" class="text-xs text-gray-500 mt-1"></p>
-        </div>
-        <div class="flex gap-2">
-          <button class="inline-flex items-center px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95"><?php echo $edit_schedule ? 'Update' : 'Save'; ?></button>
-          <?php if ($edit_schedule): ?>
-            <a href="schedules.php" class="inline-flex items-center px-4 py-2 rounded-md bg-gray-500 text-white hover:bg-gray-600">Cancel</a>
-          <?php endif; ?>
-        </div>
-      </form>
-      <hr class="my-6">
-      <div class="space-y-6">
-        <div>
-          <h4 class="text-base font-semibold mb-2">Export Schedules</h4>
-          <p class="text-xs text-gray-500 mb-3">Download all schedules to an Excel file.</p>
-          <a href="?export=xlsx" class="inline-flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700">Download XLSX</a>
-        </div>
-        <div>
-          <h4 class="text-base font-semibold mb-2">Import Schedules</h4>
-          <p class="text-xs text-gray-500 mb-3">Upload a CSV or XLSX file to import schedules.</p>
-          <form method="post" enctype="multipart/form-data" class="flex gap-2 flex-wrap">
-            <input type="hidden" name="action" value="import" />
-            <input type="file" name="import_file" accept=".csv,.xlsx" required class="text-sm border border-gray-300 rounded-md px-3 py-2" />
-            <button type="submit" class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Import</button>
-          </form>
-        </div>
-        <div>
-          <h4 class="text-base font-semibold mb-2">Truncate Schedules</h4>
-          <p class="text-xs text-gray-500 mb-3">This will permanently delete all schedules and attendance records from the database. This action cannot be undone.</p>
-          <form method="post" onsubmit="return handleTruncate(event);">
-            <input type="hidden" name="action" value="truncate" />
-            <button type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700" onclick="handleTruncate(event)">Truncate Data</button>
-          </form>
-        </div>
+  <main class="max-w-[92rem] w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Schedule Management</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Define session time windows, grace periods, and import/export timelines.</p>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 border border-blue-200 text-[#0F3D87]">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span>Total Schedules: <strong class="text-[#0F3D87] font-bold"><?php echo count($schedules); ?></strong></span>
+        </span>
       </div>
     </div>
 
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 overflow-x-auto">
-      <h2 class="text-lg font-semibold mb-4">Schedules List</h2>
-      <div class="overflow-x-auto -mx-2 sm:mx-0">
-      <table class="table-responsive-cards min-w-full text-sm divide-y divide-gray-200">
-        <thead>
-          <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-            <th class="py-2 pr-4 font-medium">Title</th>
-            <th class="py-2 pr-4 font-medium">Date</th>
-            <th class="py-2 pr-4 font-medium">Start</th>
-            <th class="py-2 pr-4 font-medium">End</th>
-            <th class="py-2 pr-4 font-medium">Late</th>
-            <th class="py-2 pr-4 font-medium">Actions</th>
-           </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($schedules as $s): ?>
-            <tr class="border-b last:border-0 hover:bg-gray-50">
-              <td class="py-2 pr-4" data-label="Title"><?php echo h($s['title']); ?></td>
-              <td class="py-2 pr-4" data-label="Date"><?php echo h($date = date('F j, Y', strtotime($s['schedule_date']))); ?></td>
-              <td class="py-2 pr-4" data-label="Start"><?php echo h(date('h:i A', strtotime($s['start_time']))); ?></td>
-              <td class="py-2 pr-4" data-label="End"><?php echo h(date('h:i A', strtotime($s['end_time']))); ?></td>
-              <td class="py-2 pr-4" data-label="Late"><?php echo (int)$s['late_minutes']; ?>m</td>
-              <td class="py-2 pr-4" data-label="Actions">
-                <div class="flex gap-2">
-                  <a href="?edit_id=<?php echo (int)$s['id']; ?>" class="inline-flex items-center px-3.5 py-2 sm:py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-xs font-medium touch-target">Edit</a>
-                  <form method="post" onsubmit="return confirm('Delete this schedule?');">
-                    <input type="hidden" name="action" value="delete" />
-                    <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
-                    <button class="px-3.5 py-2 sm:py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-xs font-medium touch-target">Delete</button>
-                  </form>
+    <!-- Main Workspace -->
+    <div class="grid lg:grid-cols-12 gap-6 items-stretch">
+      <!-- Left Column: Form & Tools (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        <!-- Create / Edit Form -->
+        <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-md bg-blue-50 text-[#0F3D87]">
+                <i data-lucide="<?php echo $edit_schedule ? 'calendar-clock' : 'calendar-plus'; ?>" class="w-4 h-4"></i>
+              </div>
+              <h2 class="text-sm font-bold text-slate-900"><?php echo $edit_schedule ? 'Edit Schedule Window' : 'Create Schedule Window'; ?></h2>
+            </div>
+            <?php if ($edit_schedule): ?>
+              <a href="schedules.php" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i> Cancel Edit
+              </a>
+            <?php endif; ?>
+          </div>
+
+          <form method="post" class="space-y-3.5 text-xs">
+            <input type="hidden" name="action" value="<?php echo $edit_schedule ? 'edit' : 'create'; ?>" />
+            <?php if ($edit_schedule): ?>
+              <input type="hidden" name="id" value="<?php echo (int)$edit_schedule['id']; ?>" />
+            <?php endif; ?>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Schedule Title *</label>
+              <input name="title" type="text" required placeholder="e.g. Regular Session / Morning Assembly" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['title']) : ''; ?>" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Schedule Date *</label>
+              <input name="schedule_date" type="date" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['schedule_date']) : ''; ?>" />
+            </div>
+
+            <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-md space-y-2.5">
+              <div class="flex items-center gap-1.5 text-slate-800 font-semibold text-[11px] uppercase tracking-wider">
+                <i data-lucide="log-in" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>Time In Window</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-slate-600 mb-1 text-[11px]">Start Time</label>
+                  <input name="time_in_start" type="time" required class="w-full rounded border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['time_in_start']) : ''; ?>" />
                 </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+                <div>
+                  <label class="block text-slate-600 mb-1 text-[11px]">End Time</label>
+                  <input name="time_in_end" type="time" required class="w-full rounded border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['time_in_end']) : ''; ?>" />
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-md space-y-2.5">
+              <div class="flex items-center gap-1.5 text-slate-800 font-semibold text-[11px] uppercase tracking-wider">
+                <i data-lucide="log-out" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Time Out Window</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-slate-600 mb-1 text-[11px]">Start Time</label>
+                  <input name="time_out_start" type="time" required class="w-full rounded border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['time_out_start']) : ''; ?>" />
+                </div>
+                <div>
+                  <label class="block text-slate-600 mb-1 text-[11px]">End Time</label>
+                  <input name="time_out_end" type="time" required class="w-full rounded border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none" value="<?php echo $edit_schedule ? h($edit_schedule['time_out_end']) : ''; ?>" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Late Grace Period (Minutes)</label>
+              <input id="late_minutes_input" name="late_minutes" type="number" min="0" value="<?php echo $edit_schedule ? (int)$edit_schedule['late_minutes'] : '0'; ?>" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none" />
+              <p id="late_time_label" class="text-[11px] text-slate-500 mt-1 font-medium"></p>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <?php if ($edit_schedule): ?>
+                <a href="schedules.php" class="px-3.5 py-2 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium transition-colors">Cancel</a>
+              <?php endif; ?>
+              <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold shadow-2xs transition-colors">
+                <i data-lucide="<?php echo $edit_schedule ? 'check' : 'plus'; ?>" class="w-4 h-4"></i>
+                <span><?php echo $edit_schedule ? 'Update Schedule' : 'Save Schedule'; ?></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Utility Operations (Import / Export / Truncate) -->
+        <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
+          <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <div class="p-1.5 rounded-md bg-slate-100 text-slate-700">
+              <i data-lucide="sliders" class="w-4 h-4"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900">Schedule Tools & Export</h3>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <!-- Export -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <p class="font-semibold text-slate-800">Export Schedules</p>
+                <p class="text-[11px] text-slate-500">Download formatted CSV/Excel roster</p>
+              </div>
+              <a href="?export=xlsx" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium transition-colors">
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Export CSV</span>
+              </a>
+            </div>
+
+            <!-- Import -->
+            <div class="pb-3 border-b border-slate-100 space-y-2">
+              <p class="font-semibold text-slate-800">Batch Import Schedules</p>
+              <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">
+                <input type="hidden" name="action" value="import" />
+                <input type="file" name="import_file" accept=".csv,.xlsx" required class="flex-1 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-[#0F3D87] hover:file:bg-blue-100 border border-slate-200 rounded-md p-1" />
+                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold transition-colors">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  <span>Import</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Truncate -->
+            <div class="space-y-1.5">
+              <p class="font-semibold text-rose-700 flex items-center gap-1">
+                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Danger Zone
+              </p>
+              <p class="text-[11px] text-slate-500">Permanently clears all schedules and related attendance logs.</p>
+              <form method="post" onsubmit="return handleTruncate(event);">
+                <input type="hidden" name="action" value="truncate" />
+                <button type="button" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-colors" onclick="handleTruncate(event)">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <span>Truncate All Schedules</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Schedules List Table (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col">
+        <div class="border border-slate-200 rounded-lg bg-white px-5 py-4 shadow-xs flex flex-col justify-between h-full space-y-4">
+          <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <div class="p-1.5 rounded-md bg-blue-50 text-[#0F3D87]">
+                  <i data-lucide="list" class="w-4 h-4"></i>
+                </div>
+                <h2 class="text-sm font-bold text-slate-900">Active Schedules</h2>
+              </div>
+              <div class="relative w-full sm:w-56">
+                <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input id="scheduleSearch" type="text" placeholder="Search schedules..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#0F3D87] outline-none transition-colors" />
+              </div>
+            </div>
+
+            <div class="table-container overflow-x-auto">
+              <table class="table-modern w-full">
+                <thead>
+                  <tr class="select-none">
+                    <th class="min-w-[170px] text-left">Schedule Title</th>
+                    <th class="w-28 text-left">Date</th>
+                    <th class="w-36 text-center">Time In Window</th>
+                    <th class="w-36 text-center">Time Out Window</th>
+                    <th class="w-20 text-center">Grace</th>
+                    <th class="w-20 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="schedulesBody">
+                  <?php if (empty($schedules)): ?>
+                    <tr id="noSchedulesRow">
+                      <td colspan="6" class="text-center py-8 text-xs text-slate-400">No schedules configured yet.</td>
+                    </tr>
+                  <?php else: ?>
+                    <?php foreach ($schedules as $s): ?>
+                      <tr class="schedule-row" data-id="<?php echo (int)$s['id']; ?>">
+                        <td class="font-medium text-slate-900 schedule-title"><?php echo h($s['title']); ?></td>
+                        <td class="text-xs text-slate-600 whitespace-nowrap schedule-date"><?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></td>
+                        <td class="text-center whitespace-nowrap">
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#0F3D87] font-mono">
+                            <?php echo h(date('g:i A', strtotime($s['time_in_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_in_end']))); ?>
+                          </span>
+                        </td>
+                        <td class="text-center whitespace-nowrap">
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 font-mono">
+                            <?php echo h(date('g:i A', strtotime($s['time_out_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_out_end']))); ?>
+                          </span>
+                        </td>
+                        <td class="text-xs text-slate-600 whitespace-nowrap text-center font-medium">
+                          <?php echo (int)$s['late_minutes']; ?> min
+                        </td>
+                        <td class="text-center">
+                          <div class="inline-flex items-center gap-2.5 justify-center">
+                            <a href="?edit_id=<?php echo (int)$s['id']; ?>" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Schedule" aria-label="Edit Schedule">
+                              <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </a>
+                            <form method="post" class="inline" onsubmit="return confirm('Delete this schedule?');">
+                              <input type="hidden" name="action" value="delete" />
+                              <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
+                              <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Schedule" aria-label="Delete Schedule">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                              </button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bottom Pagination Controls -->
+          <div id="schedulesPagerWrap" class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <div id="schedulesPageInfo">Showing 1 to <?php echo min(13, count($schedules)); ?> of <?php echo count($schedules); ?> schedules</div>
+            <div id="schedulesPager" class="inline-flex items-center gap-1"></div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
-  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" data-modal-close></div>
-    <div id="appModalPanel" class="relative bg-white rounded-xl shadow-xl ring-1 ring-gray-200 max-w-md w-full mx-4 border-l-4" style="border-left-color:#0F3D87;">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 id="appModalTitle" class="text-base font-semibold text-gray-900">Notice</h3>
+
+  <!-- Modern Modal -->
+  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" data-modal-close></div>
+    <div id="appModalPanel" class="relative bg-white rounded-lg shadow-xl border border-slate-200 max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center gap-2.5">
+        <div id="modalIconBox" class="p-2 rounded-full bg-blue-50 text-[#0F3D87]">
+          <i data-lucide="info" class="w-5 h-5"></i>
+        </div>
+        <h3 id="appModalTitle" class="text-sm font-bold text-slate-900">Notice</h3>
       </div>
-      <div class="px-6 py-4">
-        <p id="appModalMsg" class="text-sm text-gray-700"></p>
-      </div>
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95" data-modal-close>OK</button>
+      <p id="appModalMsg" class="text-xs text-slate-600 leading-relaxed"></p>
+      <div class="flex justify-end pt-2">
+        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white text-xs font-semibold hover:bg-blue-900 transition-colors" data-modal-close>OK</button>
       </div>
     </div>
   </div>
+
   <script>
     function openModal(title, message, type) {
       const overlay = document.getElementById('appModal');
-      const panel = document.getElementById('appModalPanel');
       const ttl = document.getElementById('appModalTitle');
       const msg = document.getElementById('appModalMsg');
+      const iconBox = document.getElementById('modalIconBox');
       ttl.textContent = title || 'Notice';
       msg.textContent = message || '';
-      const color = type === 'error' ? '#dc2626' : (type === 'success' ? '#16a34a' : '#0F3D87');
-      panel.style.borderLeftColor = color;
+      if (iconBox) {
+        if (type === 'error') {
+          iconBox.className = 'p-2 rounded-full bg-rose-50 text-rose-600';
+          iconBox.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        } else if (type === 'success') {
+          iconBox.className = 'p-2 rounded-full bg-emerald-50 text-emerald-600';
+          iconBox.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i>';
+        } else {
+          iconBox.className = 'p-2 rounded-full bg-blue-50 text-[#0F3D87]';
+          iconBox.innerHTML = '<i data-lucide="info" class="w-5 h-5"></i>';
+        }
+        if (window.refreshIcons) window.refreshIcons();
+      }
       overlay.classList.remove('hidden');
       overlay.classList.add('flex');
       const close = () => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); };
@@ -388,52 +501,140 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
   <?php elseif ($message): ?>
   <script>document.addEventListener('DOMContentLoaded',()=>openModal('Success', <?php echo json_encode($message); ?>, 'success'));</script>
   <?php endif; ?>
+
   <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
-    
     document.addEventListener('DOMContentLoaded', function() {
-        const startTimeInput = document.querySelector('input[name="time_in_start"]');
-        const lateMinutesInput = document.getElementById('late_minutes_input');
-        const lateTimeLabel = document.getElementById('late_time_label');
+      const startTimeInput = document.querySelector('input[name="time_in_start"]');
+      const lateMinutesInput = document.getElementById('late_minutes_input');
+      const lateTimeLabel = document.getElementById('late_time_label');
 
-        function calculateLateTime() {
-            const startTime = startTimeInput.value;
-            const lateMinutes = parseInt(lateMinutesInput.value, 10);
+      function calculateLateTime() {
+        if (!startTimeInput || !lateMinutesInput || !lateTimeLabel) return;
+        const startTime = startTimeInput.value;
+        const lateMinutes = parseInt(lateMinutesInput.value, 10);
 
-            if (startTime && !isNaN(lateMinutes)) {
-                const [hours, minutes] = startTime.split(':').map(Number);
-                const startDate = new Date();
-                startDate.setHours(hours, minutes, 0, 0);
+        if (startTime && !isNaN(lateMinutes)) {
+          const [hours, minutes] = startTime.split(':').map(Number);
+          const startDate = new Date();
+          startDate.setHours(hours, minutes, 0, 0);
+          const lateDate = new Date(startDate.getTime() + lateMinutes * 60000);
+          const lateTime = lateDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
 
-                const lateDate = new Date(startDate.getTime() + lateMinutes * 60000);
-                
-                const lateTime = lateDate.toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                });
+          if (lateMinutes > 0) {
+            lateTimeLabel.textContent = `Students will be marked late after ${lateTime}.`;
+          } else {
+            lateTimeLabel.textContent = '';
+          }
+        } else {
+          lateTimeLabel.textContent = '';
+        }
+      }
 
-                if (lateMinutes > 0) {
-                    lateTimeLabel.textContent = `Students will be marked late after ${lateTime}.`;
-                } else {
-                    lateTimeLabel.textContent = '';
-                }
-            } else {
-                lateTimeLabel.textContent = '';
-            }
+      if (startTimeInput) startTimeInput.addEventListener('input', calculateLateTime);
+      if (lateMinutesInput) lateMinutesInput.addEventListener('input', calculateLateTime);
+      calculateLateTime();
+    });
+
+    // Schedules Client-side Search and Pagination
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('scheduleSearch');
+      const tableBody = document.getElementById('schedulesBody');
+      if (!tableBody) return;
+      const rows = Array.from(tableBody.querySelectorAll('tr.schedule-row'));
+      const pageInfo = document.getElementById('schedulesPageInfo');
+      const pager = document.getElementById('schedulesPager');
+      
+      const perPage = 13;
+      let currentPage = 1;
+      let filteredRows = [...rows];
+
+      function render() {
+        const total = filteredRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        rows.forEach(r => r.style.display = 'none');
+
+        if (total === 0) {
+          if (!document.getElementById('noMatchRow')) {
+            const noMatch = document.createElement('tr');
+            noMatch.id = 'noMatchRow';
+            noMatch.innerHTML = '<td colspan="6" class="text-center py-8 text-xs text-slate-400">No schedules matching search.</td>';
+            tableBody.appendChild(noMatch);
+          } else {
+            document.getElementById('noMatchRow').style.display = '';
+          }
+          if (pageInfo) pageInfo.textContent = 'Showing 0 of 0 schedules';
+          if (pager) pager.innerHTML = '';
+          return;
         }
 
-        startTimeInput.addEventListener('input', calculateLateTime);
-        lateMinutesInput.addEventListener('input', calculateLateTime);
+        const noMatch = document.getElementById('noMatchRow');
+        if (noMatch) noMatch.style.display = 'none';
 
-        // Initial calculation on page load
-        calculateLateTime();
+        const start = (currentPage - 1) * perPage;
+        const end = Math.min(start + perPage, total);
+
+        for (let i = start; i < end; i++) {
+          filteredRows[i].style.display = '';
+        }
+
+        if (pageInfo) {
+          pageInfo.textContent = `Showing ${start + 1} to ${end} of ${total} schedules`;
+        }
+
+        if (pager) {
+          pager.innerHTML = '';
+          if (totalPages <= 1) return;
+
+          const prevBtn = document.createElement('button');
+          prevBtn.type = 'button';
+          prevBtn.className = `px-2 py-1 rounded border text-xs transition-colors ${currentPage === 1 ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer'}`;
+          prevBtn.innerHTML = '<i data-lucide="chevron-left" class="w-3.5 h-3.5 inline"></i>';
+          prevBtn.disabled = currentPage === 1;
+          prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; render(); } };
+          pager.appendChild(prevBtn);
+
+          for (let p = 1; p <= totalPages; p++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.type = 'button';
+            pageBtn.className = `px-2.5 py-1 rounded border text-xs font-medium transition-colors ${p === currentPage ? 'bg-[#0F3D87] border-[#0F3D87] text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100 cursor-pointer'}`;
+            pageBtn.textContent = p;
+            pageBtn.onclick = () => { currentPage = p; render(); };
+            pager.appendChild(pageBtn);
+          }
+
+          const nextBtn = document.createElement('button');
+          nextBtn.type = 'button';
+          nextBtn.className = `px-2 py-1 rounded border text-xs transition-colors ${currentPage === totalPages ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer'}`;
+          nextBtn.innerHTML = '<i data-lucide="chevron-right" class="w-3.5 h-3.5 inline"></i>';
+          nextBtn.disabled = currentPage === totalPages;
+          nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; render(); } };
+          pager.appendChild(nextBtn);
+
+          if (window.refreshIcons) window.refreshIcons();
+          else if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+        }
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          const q = this.value.toLowerCase().trim();
+          filteredRows = rows.filter(r => {
+            const title = (r.querySelector('.schedule-title')?.textContent || '').toLowerCase();
+            const date = (r.querySelector('.schedule-date')?.textContent || '').toLowerCase();
+            return title.includes(q) || date.includes(q);
+          });
+          currentPage = 1;
+          render();
+        });
+      }
+
+      render();
     });
     
     // Truncate with scary green skull warning
@@ -471,17 +672,12 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
           }
         </style>
         <svg class="scary-skull" width="200" height="200" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Skull -->
           <path d="M60 15C85 15 100 32 100 55C100 72 92 85 85 92L72 98C72 105 66 112 60 112C54 112 48 105 48 98L35 92C28 85 20 72 20 55C20 32 35 15 60 15Z" fill="#22c55e" stroke="#15803d" stroke-width="2"/>
-          <!-- Left eye socket -->
           <circle cx="45" cy="52" r="12" fill="#000" stroke="#22c55e" stroke-width="1"/>
           <circle cx="45" cy="52" r="7" fill="#4ade80" opacity="0.6"/>
-          <!-- Right eye socket -->
           <circle cx="75" cy="52" r="12" fill="#000" stroke="#22c55e" stroke-width="1"/>
           <circle cx="75" cy="52" r="7" fill="#4ade80" opacity="0.6"/>
-          <!-- Nose cavity -->
           <ellipse cx="60" cy="68" rx="6" ry="10" fill="#000"/>
-          <!-- Teeth -->
           <rect x="38" y="82" width="44" height="6" fill="#22c55e" stroke="#15803d" stroke-width="1"/>
           <line x1="42" y1="82" x2="42" y2="90" stroke="#15803d" stroke-width="1.5"/>
           <line x1="48" y1="82" x2="48" y2="90" stroke="#15803d" stroke-width="1.5"/>
@@ -532,5 +728,4 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
       document.body.appendChild(overlay);
     }
   </script>
-</body>
-</html>
+  <?php include __DIR__ . '/includes/footer.php'; ?>

@@ -59,109 +59,147 @@ $stmt->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
+  <title>Dashboard - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'dashboard.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
+
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header (Flat, Clean) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Attendance Dashboard</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Real-time attendance metrics, trends, and late monitoring.</p>
       </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a>
-      </nav>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 border border-slate-200 text-slate-700">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span>Today: <strong class="text-slate-900"><?php echo h($today); ?></strong></span>
+        </span>
+      </div>
     </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a>
-    </nav>
-  </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-    <section class="rounded-2xl bg-gradient-to-r from-[#0F3D87] to-[#1F5BB5] text-white p-5 sm:p-6 shadow-lg">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Attendance Dashboard</h1>
-          <p class="text-blue-100 text-sm mt-1">Monitor daily attendance performance and late trends at a glance.</p>
-        </div>
-        <div class="text-sm text-blue-100">
-          <div>Today: <span class="font-semibold text-white"><?php echo h($today); ?></span></div>
-          <div class="mt-1">Last 30-day late ranking is updated automatically.</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-      <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4">
-        <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Schedules Today</div>
-        <div class="mt-2 text-3xl font-semibold text-gray-900"><?php echo (int)$schedulesToday; ?></div>
-      </div>
-      <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4">
-        <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Time Ins Today</div>
-        <div class="mt-2 text-3xl font-semibold text-gray-900"><?php echo (int)$presentToday; ?></div>
-      </div>
-      <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4">
-        <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Late Today</div>
-        <div class="mt-2 text-3xl font-semibold text-amber-600"><?php echo (int)$lateToday; ?></div>
-      </div>
-      <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4">
-        <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Time Outs Today</div>
-        <div class="mt-2 text-3xl font-semibold text-gray-900"><?php echo (int)$timeoutToday; ?></div>
-      </div>
-    </section>
-
-    <section class="grid lg:grid-cols-3 gap-4 sm:gap-6">
-      <div class="bg-white shadow-sm ring-1 ring-gray-200 rounded-xl p-4 sm:p-6 lg:col-span-2">
-        <div class="flex items-center justify-between mb-4">
+    <!-- Integrated Metric Toolbar (Replaces 4 Heavy Cards) -->
+    <section class="border border-slate-200 rounded-lg bg-white overflow-hidden shadow-xs">
+      <div class="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+        <!-- Metric 1: Schedules -->
+        <div class="p-4 sm:p-5 flex items-start justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">Attendance Trend</h2>
-            <p class="text-xs text-gray-500 mt-1">Daily time-ins and late counts for the last 7 days</p>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Schedules Today</div>
+            <div class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900"><?php echo (int)$schedulesToday; ?></div>
+            <div class="mt-1 text-[11px] text-slate-400">Scheduled campus sessions</div>
+          </div>
+          <div class="p-2 rounded-md bg-blue-50 text-[#0F3D87]">
+            <i data-lucide="calendar-days" class="w-5 h-5"></i>
           </div>
         </div>
-        <div class="h-72">
+
+        <!-- Metric 2: Time Ins -->
+        <div class="p-4 sm:p-5 flex items-start justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Time Ins Today</div>
+            <div class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-emerald-600"><?php echo (int)$presentToday; ?></div>
+            <div class="mt-1 text-[11px] text-slate-400">Recorded student arrivals</div>
+          </div>
+          <div class="p-2 rounded-md bg-emerald-50 text-emerald-600">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Metric 3: Late Today -->
+        <div class="p-4 sm:p-5 flex items-start justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Late Today</div>
+            <div class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-amber-600"><?php echo (int)$lateToday; ?></div>
+            <div class="mt-1 text-[11px] text-slate-400">Past schedule window</div>
+          </div>
+          <div class="p-2 rounded-md bg-amber-50 text-amber-600">
+            <i data-lucide="clock-alert" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Metric 4: Time Outs -->
+        <div class="p-4 sm:p-5 flex items-start justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Time Outs Today</div>
+            <div class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-700"><?php echo (int)$timeoutToday; ?></div>
+            <div class="mt-1 text-[11px] text-slate-400">Completed departures</div>
+          </div>
+          <div class="p-2 rounded-md bg-slate-100 text-slate-600">
+            <i data-lucide="user-minus" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content: Charts & Rankings -->
+    <section class="grid lg:grid-cols-3 gap-6">
+      <!-- 7-Day Trend Chart -->
+      <div class="border border-slate-200 rounded-lg bg-white p-5 lg:col-span-2 shadow-xs">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-900">Attendance Trend</h2>
+            <p class="text-xs text-slate-400">Daily time-ins and late arrivals for the past 7 days</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs">
+            <span class="inline-flex items-center gap-1.5 text-slate-600 font-medium">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#0F3D87]"></span> Present
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-slate-600 font-medium">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#D4AF37]"></span> Late
+            </span>
+          </div>
+        </div>
+        <div class="h-64 sm:h-72 w-full">
           <canvas id="trendChart"></canvas>
         </div>
       </div>
-      <div class="bg-white shadow-sm ring-1 ring-gray-200 rounded-xl p-4 sm:p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">Top Late Students</h2>
-        <p class="text-xs text-gray-500 mb-4">Ranked by total minutes late in the last 30 days</p>
-        <div class="overflow-x-auto -mx-2 sm:mx-0">
-          <table class="table-responsive-cards min-w-full text-sm divide-y divide-gray-200">
+
+      <!-- Top Late Students List -->
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs flex flex-col">
+        <div class="pb-3 mb-3 border-b border-slate-100">
+          <h2 class="text-sm font-semibold text-slate-900">Top Late Students</h2>
+          <p class="text-xs text-slate-400">Ranked by total late minutes (last 30 days)</p>
+        </div>
+
+        <div class="overflow-y-auto max-h-72 -mx-2 px-2 flex-1">
+          <table class="table-modern w-full">
             <thead>
-              <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-                <th class="py-2 pr-4 font-medium">Rank / Student</th>
-                <th class="py-2 pr-4 font-medium text-right">Minutes Late</th>
+              <tr>
+                <th class="py-2 text-left">Student</th>
+                <th class="py-2 text-right">Minutes</th>
               </tr>
             </thead>
             <tbody>
             <?php foreach ($topLate as $idx => $row): ?>
-              <tr class="border-b last:border-0 hover:bg-gray-50">
-                <td class="py-2 pr-4" data-label="Student">
-                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 mr-2"><?php echo (int)$idx + 1; ?></span>
-                  <?php echo h($row['name']); ?>
-                  <div class="text-xs text-gray-500 ml-8"><?php echo h($row['student_id']); ?></div>
+              <tr>
+                <td class="py-2">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 shrink-0">
+                      <?php echo (int)$idx + 1; ?>
+                    </span>
+                    <div class="min-w-0">
+                      <div class="text-xs font-medium text-slate-900 truncate"><?php echo h($row['name']); ?></div>
+                      <div class="text-[11px] text-slate-400 font-mono"><?php echo h($row['student_id']); ?></div>
+                    </div>
+                  </div>
                 </td>
-                <td class="py-2 pr-4 text-right font-medium text-gray-800" data-label="Minutes Late"><?php echo (int)$row['minutes']; ?></td>
+                <td class="py-2 text-right">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700">
+                    <?php echo (int)$row['minutes']; ?>m
+                  </span>
+                </td>
               </tr>
             <?php endforeach; ?>
             <?php if (count($topLate) === 0): ?>
-              <tr><td class="py-4 text-gray-500 text-sm" colspan="2">No late records in the last 30 days.</td></tr>
+              <tr><td class="py-6 text-center text-slate-400 text-xs" colspan="2">No late records in the last 30 days.</td></tr>
             <?php endif; ?>
             </tbody>
           </table>
@@ -170,9 +208,12 @@ $stmt->close();
     </section>
   </main>
 
+  <?php include __DIR__ . '/includes/footer.php'; ?>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const ctx = document.getElementById('trendChart');
+      if (!ctx) return;
       const labels = <?php echo json_encode($labels); ?>;
       const present = <?php echo json_encode($present); ?>;
       const late = <?php echo json_encode($late); ?>;
@@ -182,18 +223,26 @@ $stmt->close();
           labels,
           datasets: [
             {
-              label: 'Present (time in)',
+              label: 'Present',
               data: present,
               borderColor: '#0F3D87',
-              backgroundColor: 'rgba(15,61,135,0.1)',
-              tension: 0.25,
+              backgroundColor: 'rgba(15,61,135,0.06)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: '#0F3D87'
             },
             {
               label: 'Late',
               data: late,
               borderColor: '#D4AF37',
-              backgroundColor: 'rgba(212,175,55,0.15)',
-              tension: 0.25,
+              backgroundColor: 'rgba(212,175,55,0.08)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: '#D4AF37'
             }
           ]
         },
@@ -201,23 +250,23 @@ $stmt->close();
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { beginAtZero: true, ticks: { precision:0 } }
+            y: { 
+              beginAtZero: true, 
+              ticks: { precision:0, font: { size: 11 } },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              ticks: { font: { size: 10 } },
+              grid: { display: false }
+            }
           },
           plugins: {
-            legend: { display: true }
+            legend: { display: false }
           }
         }
       });
     });
   </script>
-  <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
-  </script>
 </body>
 </html>
+

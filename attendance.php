@@ -178,20 +178,21 @@ if ($api === 'attendance') {
     $res2 = $ps->get_result();
     $html = '';
     while ($row = $res2->fetch_assoc()) {
-        $html .= '<tr class="border-b border-gray-200 divide-x divide-gray-100 hover:bg-gray-50">'
-              . '<td class="py-2 pr-4" data-label="Date">' . h($row['schedule_date']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Schedule">' . h($row['title']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Student ID">' . h($row['sid']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Name">' . h($row['name']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Course">' . h($row['course']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Year">' . h($row['year_level']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Section">' . h($row['section']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Gender">' . h($row['gender']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Department">' . h($row['department']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Time In">' . h($row['time_in']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Time Out">' . h($row['time_out']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Status">' . h($row['status']) . '</td>'
-              . '<td class="py-2 pr-4" data-label="Late (min)">' . (int)$row['minutes_late'] . '</td>'
+        $statusClass = $row['status'] === 'On Time' ? 'bg-emerald-50 text-emerald-700' : ($row['status'] === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600');
+        $html .= '<tr class="hover:bg-slate-50 transition-colors">'
+              . '<td class="whitespace-nowrap text-slate-600">' . h($row['schedule_date']) . '</td>'
+              . '<td class="font-medium text-slate-900">' . h($row['title']) . '</td>'
+              . '<td class="font-mono text-xs text-slate-600">' . h($row['sid']) . '</td>'
+              . '<td class="font-medium text-slate-900">' . h($row['name']) . '</td>'
+              . '<td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">' . h($row['course']) . '</span></td>'
+              . '<td>' . h($row['year_level']) . '</td>'
+              . '<td>' . h($row['section']) . '</td>'
+              . '<td>' . h($row['gender']) . '</td>'
+              . '<td class="text-xs text-slate-500">' . h($row['department']) . '</td>'
+              . '<td class="font-mono text-xs text-slate-700">' . h($row['time_in'] ?: '—') . '</td>'
+              . '<td class="font-mono text-xs text-slate-700">' . h($row['time_out'] ?: '—') . '</td>'
+              . '<td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold ' . $statusClass . '">' . h($row['status'] ?: '—') . '</span></td>'
+              . '<td class="text-xs text-slate-600">' . ((int)$row['minutes_late'] > 0 ? (int)$row['minutes_late'] . 'm' : '—') . '</td>'
               . '</tr>';
     }
     $ps->close();
@@ -260,171 +261,190 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance</title>
+  <title>Attendance Records - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
-      </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a><a href="analytics.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Analytics</a>
-      </nav>
-    </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a><a href="analytics.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Analytics</a>
-    </nav>
-  </header>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'attendance.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-    <div class="flex gap-2 mb-4 flex-wrap">
-      <a href="?view=schedule&<?php echo http_build_query(array_filter(['date'=>$date,'schedule_id'=>$schedule_id,'department'=>$department,'section'=>$section,'course'=>$course,'year_level'=>$year_level,'student_id'=>$student_code,'name'=>$student_name])); ?>" class="px-4 py-2 rounded-md font-medium <?php echo $view==='schedule' ? 'bg-[#0F3D87] text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">By Schedule</a>
-      <a href="?view=student" class="px-4 py-2 rounded-md font-medium <?php echo $view==='student' ? 'bg-[#0F3D87] text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">By Student</a>
+  <main class="max-w-[92rem] w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header & View Toggle -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Attendance Records</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Filter, inspect real-time session logs, and export records.</p>
+      </div>
+      <div class="inline-flex p-1 rounded-lg bg-slate-200/70 border border-slate-200 text-xs font-semibold self-start sm:self-auto">
+        <a href="?view=schedule&<?php echo http_build_query(array_filter(['date'=>$date,'schedule_id'=>$schedule_id,'department'=>$department,'section'=>$section,'course'=>$course,'year_level'=>$year_level,'student_id'=>$student_code,'name'=>$student_name])); ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors <?php echo $view==='schedule' ? 'bg-white text-[#0F3D87] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span>By Schedule</span>
+        </a>
+        <a href="?view=student" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors <?php echo $view==='student' ? 'bg-white text-[#0F3D87] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>By Student</span>
+        </a>
+      </div>
     </div>
 
     <?php if ($view === 'schedule'): ?>
-    <div class="bg-white shadow-md ring-1 ring-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-      <form id="attFilters" method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-4 items-end">
+    <!-- Filter Toolbar Surface -->
+    <div class="border border-slate-200 rounded-lg bg-white p-4 shadow-xs space-y-4">
+      <form id="attFilters" method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 items-end text-xs">
         <input type="hidden" name="view" value="schedule" />
         <div>
-          <label class="block text-sm font-medium text-gray-700">Date</label>
-          <input type="date" name="date" value="<?php echo h($date); ?>" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
+          <label class="block font-semibold text-slate-700 mb-1">Date</label>
+          <input type="date" name="date" value="<?php echo h($date); ?>" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Schedule</label>
-          <select name="schedule_id" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="0">All</option>
+          <label class="block font-semibold text-slate-700 mb-1">Schedule</label>
+          <select name="schedule_id" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="0">All Schedules</option>
             <?php foreach ($schedulesForDate as $sc): ?>
               <option value="<?php echo (int)$sc['id']; ?>" <?php echo $schedule_id === (int)$sc['id'] ? 'selected' : ''; ?>><?php echo h($sc['title']); ?> — <?php echo h($sc['schedule_date'] ?? ''); ?> (<?php echo h(substr($sc['start_time'] ?? '', 0, 5)); ?>)</option>
             <?php endforeach; ?>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Department</label>
-          <select name="department" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
+          <label class="block font-semibold text-slate-700 mb-1">Department</label>
+          <select name="department" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">All Departments</option>
             <option value="Education" <?php echo $department==='Education'?'selected':''; ?>>Education</option>
             <option value="Technology" <?php echo $department==='Technology'?'selected':''; ?>>Technology</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Course</label>
-          <select name="course" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
+          <label class="block font-semibold text-slate-700 mb-1">Course</label>
+          <select name="course" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">All Courses</option>
             <?php foreach ($courses as $c): ?>
               <option value="<?php echo h($c); ?>" <?php echo $course === $c ? 'selected' : ''; ?>><?php echo h($c); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Year</label>
-          <select name="year_level" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
+          <label class="block font-semibold text-slate-700 mb-1">Year</label>
+          <select name="year_level" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">All Years</option>
             <?php foreach ($years as $y): ?>
               <option value="<?php echo h($y); ?>" <?php echo $year_level === $y ? 'selected' : ''; ?>><?php echo h($y); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Section</label>
-          <select name="section" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
+          <label class="block font-semibold text-slate-700 mb-1">Section</label>
+          <select name="section" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">All Sections</option>
             <?php foreach ($sections as $sec): ?>
               <option value="<?php echo h($sec); ?>" <?php echo $section === $sec ? 'selected' : ''; ?>><?php echo h($sec); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Student ID</label>
-          <input type="text" name="student_id" value="<?php echo h($student_code); ?>" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" placeholder="Search by ID" />
+          <label class="block font-semibold text-slate-700 mb-1">Student ID</label>
+          <input type="text" name="student_id" value="<?php echo h($student_code); ?>" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] outline-none" placeholder="Search ID..." />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Name</label>
-          <input type="text" name="name" value="<?php echo h($student_name); ?>" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" placeholder="Search by name" />
+          <label class="block font-semibold text-slate-700 mb-1">Name</label>
+          <input type="text" name="name" value="<?php echo h($student_name); ?>" class="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] outline-none" placeholder="Search name..." />
         </div>
-        <div class="sm:col-span-2 lg:col-span-8 flex gap-2">
-          <button class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 hidden">Filter</button>
-          <a id="exportCsv" href="?date=<?php echo urlencode($date); ?>&schedule_id=<?php echo (int)$schedule_id; ?>&department=<?php echo urlencode($department); ?>&section=<?php echo urlencode($section); ?>&course=<?php echo urlencode($course); ?>&year_level=<?php echo urlencode($year_level); ?>&student_id=<?php echo urlencode($student_code); ?>&name=<?php echo urlencode($student_name); ?>&export=1" class="inline-flex items-center px-4 py-2 rounded-md bg-[#D4AF37] text-[#0F3D87] hover:opacity-90 touch-target">Export Excel (CSV)</a>
-          <button type="button" id="clearFilters" class="inline-flex items-center px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 touch-target">Clear</button>
+
+        <div class="sm:col-span-2 md:col-span-4 lg:col-span-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-2.5 border-t border-slate-100">
+          <div class="flex items-center gap-2">
+            <a id="exportCsv" href="?date=<?php echo urlencode($date); ?>&schedule_id=<?php echo (int)$schedule_id; ?>&department=<?php echo urlencode($department); ?>&section=<?php echo urlencode($section); ?>&course=<?php echo urlencode($course); ?>&year_level=<?php echo urlencode($year_level); ?>&student_id=<?php echo urlencode($student_code); ?>&name=<?php echo urlencode($student_name); ?>&export=1" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Export CSV</span>
+            </a>
+            <button type="button" id="clearFilters" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-medium transition-colors">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Clear Filters</span>
+            </button>
+          </div>
+          <div class="text-xs text-slate-500 font-medium">
+            Found <strong class="text-slate-900 font-bold"><?php echo count($rows); ?></strong> record(s)
+          </div>
         </div>
       </form>
     </div>
 
-    <div class="bg-white shadow-md ring-1 ring-gray-200 rounded-xl p-4 sm:p-6 overflow-x-auto">
-      <div class="rounded-lg border border-gray-200 overflow-hidden overflow-x-auto -mx-2 sm:mx-0">
-      <table class="table-responsive-cards min-w-full text-sm">
-        <thead>
-          <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide divide-x divide-gray-200">
-            <th class="py-2 pr-4 font-medium">Date</th>
-            <th class="py-2 pr-4 font-medium">Schedule</th>
-            <th class="py-2 pr-4 font-medium">Student ID</th>
-            <th class="py-2 pr-4 font-medium">Name</th>
-            <th class="py-2 pr-4 font-medium">Course</th>
-            <th class="py-2 pr-4 font-medium">Year</th>
-            <th class="py-2 pr-4 font-medium">Section</th>
-            <th class="py-2 pr-4 font-medium">Gender</th>
-            <th class="py-2 pr-4 font-medium">Department</th>
-            <th class="py-2 pr-4 font-medium">Time In</th>
-            <th class="py-2 pr-4 font-medium">Time Out</th>
-            <th class="py-2 pr-4 font-medium">Status</th>
-            <th class="py-2 pr-4 font-medium">Late (min)</th>
-          </tr>
-        </thead>
-        <tbody id="attendanceBody">
-          <?php foreach ($rows as $r): ?>
-            <tr class="border-b border-gray-200 divide-x divide-gray-100 hover:bg-gray-50">
-              <td class="py-2 pr-4" data-label="Date"><?php echo h($r['schedule_date']); ?></td>
-              <td class="py-2 pr-4" data-label="Schedule"><?php echo h($r['title']); ?></td>
-              <td class="py-2 pr-4" data-label="Student ID"><?php echo h($r['sid']); ?></td>
-              <td class="py-2 pr-4" data-label="Name"><?php echo h($r['name']); ?></td>
-              <td class="py-2 pr-4" data-label="Course"><?php echo h($r['course']); ?></td>
-              <td class="py-2 pr-4" data-label="Year"><?php echo h($r['year_level']); ?></td>
-              <td class="py-2 pr-4" data-label="Section"><?php echo h($r['section']); ?></td>
-              <td class="py-2 pr-4" data-label="Gender"><?php echo h($r['gender']); ?></td>
-              <td class="py-2 pr-4" data-label="Department"><?php echo h($r['department']); ?></td>
-              <td class="py-2 pr-4" data-label="Time In"><?php echo h($r['time_in']); ?></td>
-              <td class="py-2 pr-4" data-label="Time Out"><?php echo h($r['time_out']); ?></td>
-              <td class="py-2 pr-4" data-label="Status"><?php echo h($r['status']); ?></td>
-              <td class="py-2 pr-4" data-label="Late (min)"><?php echo (int)$r['minutes_late']; ?></td>
+    <!-- Attendance Table Surface -->
+    <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs space-y-4">
+      <div class="table-container">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Schedule</th>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Course</th>
+              <th>Year</th>
+              <th>Sec</th>
+              <th>Gender</th>
+              <th>Dept</th>
+              <th>Time In</th>
+              <th>Time Out</th>
+              <th>Status</th>
+              <th>Late</th>
             </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+          </thead>
+          <tbody id="attendanceBody">
+            <?php if (empty($rows)): ?>
+              <tr>
+                <td colspan="13" class="text-center py-8 text-xs text-slate-400">No attendance records found for selected filters.</td>
+              </tr>
+            <?php else: ?>
+              <?php foreach ($rows as $r): ?>
+                <?php $statusClass = $r['status'] === 'On Time' ? 'bg-emerald-50 text-emerald-700' : ($r['status'] === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600'); ?>
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="whitespace-nowrap text-slate-600"><?php echo h($r['schedule_date']); ?></td>
+                  <td class="font-medium text-slate-900"><?php echo h($r['title']); ?></td>
+                  <td class="font-mono text-xs text-slate-600"><?php echo h($r['sid']); ?></td>
+                  <td class="font-medium text-slate-900"><?php echo h($r['name']); ?></td>
+                  <td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($r['course']); ?></span></td>
+                  <td><?php echo h($r['year_level']); ?></td>
+                  <td><?php echo h($r['section']); ?></td>
+                  <td><?php echo h($r['gender']); ?></td>
+                  <td class="text-xs text-slate-500"><?php echo h($r['department']); ?></td>
+                  <td class="font-mono text-xs text-slate-700"><?php echo h($r['time_in'] ?: '—'); ?></td>
+                  <td class="font-mono text-xs text-slate-700"><?php echo h($r['time_out'] ?: '—'); ?></td>
+                  <td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold <?php echo $statusClass; ?>"><?php echo h($r['status'] ?: '—'); ?></span></td>
+                  <td class="text-xs text-slate-600"><?php echo ((int)$r['minutes_late'] > 0 ? (int)$r['minutes_late'] . 'm' : '—'); ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
       </div>
-      <?php if (count($rows) === 0): ?>
-        <div class="text-sm text-gray-600 mt-4">No records found for selected filters.</div>
-      <?php endif; ?>
     </div>
     <?php else: ?>
-    <div class="bg-white shadow-md ring-1 ring-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-      <h2 class="text-lg font-semibold mb-4">All Students – Attendance History</h2>
-      <p class="text-sm text-gray-600 mb-4">View each student's attendance across all schedules.</p>
-      <div class="flex flex-col sm:flex-row gap-3 mb-4">
-        <input type="search" id="studentSearch" value="<?php echo h($view==='student' ? ($_GET['q'] ?? '') : ''); ?>" placeholder="Search by Student ID, Name, Section, Department, Course..." class="flex-1 min-w-0 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        <button type="button" id="studentSearchBtn" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95 touch-target">Search</button>
+    <!-- By Student View -->
+    <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Student Attendance History</h2>
+          <p class="text-xs text-slate-500">Click a student row to inspect all recorded session logs.</p>
+        </div>
       </div>
-      <div id="studentsList"></div>
-      <div id="studentsPager" class="flex items-center justify-between mt-4 text-sm"></div>
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <input type="search" id="studentSearch" value="<?php echo h($view==='student' ? ($_GET['q'] ?? '') : ''); ?>" placeholder="Search by Student ID, Name, Section, Department, Course..." class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] outline-none" />
+        </div>
+        <button type="button" id="studentSearchBtn" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 text-xs font-semibold shadow-2xs transition-colors">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>Search</span>
+        </button>
+      </div>
+      <div id="studentsList" class="space-y-2 pt-2"></div>
+      <div id="studentsPager" class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500"></div>
     </div>
     <?php endif; ?>
   </main>
+
   <script>
     const f = document.getElementById('attFilters');
     const dateEl = f ? f.querySelector('input[name="date"]') : null;
@@ -458,7 +478,7 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
       const p = new URLSearchParams(qs());
       u.search = p.toString();
       history.replaceState({}, '', u.toString());
-      exportEl.href = '?' + p.toString() + '&export=1';
+      if (exportEl) exportEl.href = '?' + p.toString() + '&export=1';
     }
 
     let fetchController = null;
@@ -468,16 +488,21 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
       fetchController = new AbortController();
       fetch('?api=attendance&' + qs(), { signal: fetchController.signal })
         .then(r => r.json())
-        .then(d => { bodyEl.innerHTML = d.html || ''; })
+        .then(d => { 
+          if (bodyEl) {
+            bodyEl.innerHTML = d.html || '<tr><td colspan="13" class="text-center py-8 text-xs text-slate-400">No records found for selected filters.</td></tr>'; 
+          }
+        })
         .catch(() => {});
     }
 
     function reloadSchedules() {
+      if (!schedEl) return;
       const selected = schedEl.value;
-      fetch('?api=schedules&date=' + encodeURIComponent(dateEl.value || ''))
+      fetch('?api=schedules&date=' + encodeURIComponent(dateEl ? dateEl.value : ''))
         .then(r => r.json())
         .then(arr => {
-          const opts = ['<option value="0">All</option>'].concat(arr.map(s => `<option value="${s.id}">${s.title || ''} — ${s.schedule_date || ''} (${(s.start_time || '').substring(0,5)})</option>`));
+          const opts = ['<option value="0">All Schedules</option>'].concat(arr.map(s => `<option value="${s.id}">${s.title || ''} — ${s.schedule_date || ''} (${(s.start_time || '').substring(0,5)})</option>`));
           schedEl.innerHTML = opts.join('');
           if (selected) schedEl.value = selected;
           loadRows();
@@ -505,7 +530,6 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
           if (nameEl) nameEl.value = '';
           loadRows();
         });
-        loadRows();
       }
       // By Student view
       const studentSearch = document.getElementById('studentSearch');
@@ -521,12 +545,12 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
               let html = '';
               for (const s of (d.students || [])) {
                 const att = s.attendance || [];
-                const attHtml = att.length === 0 ? '<p class="text-sm text-gray-500 py-2">No attendance records yet.</p>' : att.map(a => 
-                  '<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="py-2 pr-4">' + esc(a.schedule_date) + '</td><td class="py-2 pr-4">' + esc(a.title) + '</td><td class="py-2 pr-4">' + esc(a.start_time || '') + '-' + esc(a.end_time || '') + '</td><td class="py-2 pr-4">' + esc(a.time_in || '-') + '</td><td class="py-2 pr-4">' + esc(a.time_out || '-') + '</td><td class="py-2 pr-4">' + esc(a.status || '-') + '</td><td class="py-2 pr-4">' + (a.minutes_late || 0) + '</td></tr>'
+                const attHtml = att.length === 0 ? '<tr><td colspan="7" class="text-center py-4 text-xs text-slate-400">No attendance records yet.</td></tr>' : att.map(a => 
+                  '<tr class="hover:bg-slate-50 transition-colors"><td class="whitespace-nowrap font-medium text-slate-700">' + esc(a.schedule_date) + '</td><td>' + esc(a.title) + '</td><td class="font-mono text-xs">' + esc(a.start_time || '') + ' - ' + esc(a.end_time || '') + '</td><td class="font-mono text-xs text-slate-700">' + esc(a.time_in || '—') + '</td><td class="font-mono text-xs text-slate-700">' + esc(a.time_out || '—') + '</td><td><span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ' + (a.status === 'On Time' ? 'bg-emerald-50 text-emerald-700' : (a.status === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600')) + '">' + esc(a.status || '—') + '</span></td><td class="text-xs text-slate-600">' + (a.minutes_late ? a.minutes_late + 'm' : '—') + '</td></tr>'
                 ).join('');
-                html += '<div class="border border-gray-200 rounded-lg mb-3 overflow-hidden"><div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50 cursor-pointer hover:bg-gray-100" data-toggle><div class="font-medium">' + esc(s.name) + ' <span class="text-gray-500 font-normal">(' + esc(s.student_id) + ')</span></div><div class="text-sm text-gray-600">' + esc(s.section) + ' · ' + esc(s.course) + '</div><div class="text-xs text-gray-500">' + att.length + ' attendance record(s)</div></div><div class="att-detail hidden"><table class="min-w-full text-sm"><thead><tr class="bg-gray-100 text-left text-xs text-gray-600"><th class="py-2 pr-4">Date</th><th class="py-2 pr-4">Schedule</th><th class="py-2 pr-4">Time</th><th class="py-2 pr-4">Time In</th><th class="py-2 pr-4">Time Out</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Late</th></tr></thead><tbody>' + attHtml + '</tbody></table></div></div>';
+                html += '<div class="border border-slate-200 rounded-lg overflow-hidden bg-white"><div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors" data-toggle><div class="flex items-center gap-2"><span class="font-semibold text-xs text-slate-900">' + esc(s.name) + '</span><span class="font-mono text-xs text-slate-500">(' + esc(s.student_id) + ')</span></div><div class="text-xs text-slate-600 font-medium">' + esc(s.section) + ' · ' + esc(s.course) + '</div><div class="text-[11px] font-semibold text-[#0F3D87] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">' + att.length + ' record(s)</div></div><div class="att-detail hidden p-3 border-t border-slate-100 bg-white"><div class="table-container"><table class="table-modern w-full text-xs"><thead><tr><th>Date</th><th>Schedule</th><th>Window</th><th>Time In</th><th>Time Out</th><th>Status</th><th>Late</th></tr></thead><tbody>' + attHtml + '</tbody></table></div></div></div>';
               }
-              studentsList.innerHTML = html || '<p class="text-gray-500 py-4">No students found.</p>';
+              studentsList.innerHTML = html || '<div class="text-center py-8 text-xs text-slate-400">No students found.</div>';
               studentsList.querySelectorAll('[data-toggle]').forEach(el => {
                 el.addEventListener('click', () => { el.nextElementSibling.classList.toggle('hidden'); });
               });
@@ -534,12 +558,13 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
                 const qParam = (studentSearch ? studentSearch.value : '').trim();
                 const qStr = qParam ? '&q=' + encodeURIComponent(qParam) : '';
                 if (d.totalPages > 1) {
-                  studentsPager.innerHTML = '<div>Page ' + d.page + ' of ' + d.totalPages + ' (' + (d.count || 0) + ' students)</div><div class="flex gap-2">' + (d.page > 1 ? '<a href="?view=student' + qStr + '&page=' + (d.page-1) + '" class="px-3 py-1.5 rounded border hover:bg-gray-50">Prev</a>' : '') + (d.page < d.totalPages ? '<a href="?view=student' + qStr + '&page=' + (d.page+1) + '" class="px-3 py-1.5 rounded border hover:bg-gray-50">Next</a>' : '') + '</div>';
+                  studentsPager.innerHTML = '<div>Page ' + d.page + ' of ' + d.totalPages + ' (' + (d.count || 0) + ' students)</div><div class="flex gap-1">' + (d.page > 1 ? '<a href="?view=student' + qStr + '&page=' + (d.page-1) + '" class="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700">Prev</a>' : '') + (d.page < d.totalPages ? '<a href="?view=student' + qStr + '&page=' + (d.page+1) + '" class="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700">Next</a>' : '') + '</div>';
                 } else {
                   studentsPager.innerHTML = d.count ? 'Total: ' + d.count + ' student(s)' : '';
                 }
               }
-            }).catch(() => { studentsList.innerHTML = '<p class="text-red-500 py-4">Failed to load.</p>'; });
+              if (window.refreshIcons) window.refreshIcons();
+            }).catch(() => { studentsList.innerHTML = '<div class="text-rose-500 text-xs py-4">Failed to load student data.</div>'; });
         }
         function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
         const urlParams = new URLSearchParams(window.location.search);
@@ -549,45 +574,4 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
       }
     });
   </script>
-  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" data-modal-close></div>
-    <div id="appModalPanel" class="relative bg-white rounded-xl shadow-xl ring-1 ring-gray-200 max-w-md w-full mx-4 border-l-4" style="border-left-color:#0F3D87;">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 id="appModalTitle" class="text-base font-semibold text-gray-900">Notice</h3>
-      </div>
-      <div class="px-6 py-4">
-        <p id="appModalMsg" class="text-sm text-gray-700"></p>
-      </div>
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95" data-modal-close>OK</button>
-      </div>
-    </div>
-  </div>
-  <script>
-    function openModal(title, message, type) {
-      const overlay = document.getElementById('appModal');
-      const panel = document.getElementById('appModalPanel');
-      const ttl = document.getElementById('appModalTitle');
-      const msg = document.getElementById('appModalMsg');
-      ttl.textContent = title || 'Notice';
-      msg.textContent = message || '';
-      const color = type === 'error' ? '#dc2626' : (type === 'success' ? '#16a34a' : '#0F3D87');
-      panel.style.borderLeftColor = color;
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-      const close = () => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); };
-      overlay.querySelectorAll('[data-modal-close]').forEach(el => { el.onclick = close; });
-      document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown', esc);} });
-    }
-  </script>
-  <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
-  </script>
-</body>
-</html>
+  <?php include __DIR__ . '/includes/footer.php'; ?>

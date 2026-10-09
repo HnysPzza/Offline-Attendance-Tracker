@@ -197,59 +197,49 @@ while ($row = $res->fetch_assoc()) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analytics</title>
+  <title>Analytics - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
-      </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a>
-        <a href="analytics.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Analytics</a>
-      </nav>
-    </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a>
-      <a href="analytics.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Analytics</a>
-    </nav>
-  </header>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'analytics.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 mb-6">
-      <h1 class="text-2xl font-semibold mb-4">Attendance Analytics</h1>
-      <div class="flex flex-col sm:flex-row gap-4 items-end">
+  <main class="max-w-[92rem] w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Attendance Analytics</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Session turnout, punctuality breakdown, and course-by-course performance charts.</p>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <a href="student_breakdown.php" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0F3D87] hover:bg-blue-900 text-white text-xs font-semibold shadow-2xs transition-colors">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Student Breakdown</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Controls & Filters Surface -->
+    <div class="border border-slate-200 rounded-lg bg-white p-4 shadow-xs">
+      <div class="flex flex-col md:flex-row md:items-end gap-3 text-xs">
         <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Select Schedule</label>
-          <select id="scheduleSelect" class="w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">-- Choose a schedule --</option>
+          <label class="block font-semibold text-slate-700 mb-1">Select Schedule *</label>
+          <select id="scheduleSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">-- Choose a schedule session --</option>
             <?php foreach ($schedules as $s): ?>
-              <option value="<?php echo (int)$s['id']; ?>"><?php echo h($s['title']); ?> — <?php echo h($s['schedule_date']); ?></option>
+              <option value="<?php echo (int)$s['id']; ?>"><?php echo h($s['title']); ?> — <?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Course (Optional)</label>
-          <select id="courseFilter" class="w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">-- All Courses --</option>
+        <div class="w-full md:w-56">
+          <label class="block font-semibold text-slate-700 mb-1">Course Filter</label>
+          <select id="courseFilter" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="">All Courses</option>
             <option value="BSIT">BSIT</option>
             <option value="BIT">BIT</option>
             <option value="BEED">BEED</option>
@@ -257,87 +247,113 @@ while ($row = $res->fetch_assoc()) {
             <option value="BSED">BSED</option>
           </select>
         </div>
-        <div class="flex gap-2">
-          <button id="exportBtn" class="px-4 py-2 rounded-md bg-[#D4AF37] text-[#0F3D87] hover:opacity-90 font-medium">Export to CSV</button>
-          <a href="student_breakdown.php" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-90 font-medium inline-flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            Student Breakdown
-          </a>
+        <div class="flex items-center gap-2 self-end">
+          <button type="button" id="exportBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <div class="bg-blue-50 shadow-md ring-1 ring-blue-200 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-blue-700 font-medium">Total Students</p>
-            <p id="totalStudentsCount" class="text-4xl font-bold text-blue-600 mt-2">0</p>
-          </div>
-          <svg class="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM6 20h12a6 6 0 00-6-6 6 6 0 00-6 6z"/></svg>
+    <!-- Unified 4-Metric Toolbar (Matching Dashboard) -->
+    <div class="border border-slate-200 bg-white rounded-lg shadow-xs overflow-hidden grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Enrolled</span>
+          <div id="totalStudentsCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 font-mono">0</div>
+        </div>
+        <div class="p-2.5 rounded-full bg-blue-50 text-[#0F3D87]">
+          <i data-lucide="users" class="w-5 h-5"></i>
         </div>
       </div>
 
-      <div class="bg-green-50 shadow-md ring-1 ring-green-200 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-green-700 font-medium">On Time Students</p>
-            <p id="onTimeCount" class="text-4xl font-bold text-green-600 mt-2">0</p>
-          </div>
-          <svg class="w-12 h-12 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">On Time</span>
+          <div id="onTimeCount" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono">0</div>
+        </div>
+        <div class="p-2.5 rounded-full bg-emerald-50 text-emerald-600">
+          <i data-lucide="user-check" class="w-5 h-5"></i>
         </div>
       </div>
 
-      <div class="bg-red-50 shadow-md ring-1 ring-red-200 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-red-700 font-medium">Late Students</p>
-            <p id="lateCount" class="text-4xl font-bold text-red-600 mt-2">0</p>
-          </div>
-          <svg class="w-12 h-12 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Late Attendance</span>
+          <div id="lateCount" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 font-mono">0</div>
+        </div>
+        <div class="p-2.5 rounded-full bg-amber-50 text-amber-600">
+          <i data-lucide="clock" class="w-5 h-5"></i>
         </div>
       </div>
 
-      <div class="bg-gray-50 shadow-md ring-1 ring-gray-200 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-700 font-medium">Absent Students</p>
-            <p id="noTimeInCount" class="text-4xl font-bold text-gray-600 mt-2">0</p>
-          </div>
-          <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Absent / No Time In</span>
+          <div id="noTimeInCount" class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-1 font-mono">0</div>
+        </div>
+        <div class="p-2.5 rounded-full bg-rose-50 text-rose-600">
+          <i data-lucide="user-x" class="w-5 h-5"></i>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="chartsContainer">
+    <!-- Charts Workspace (Clean border containers) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" id="chartsContainer">
       <!-- BSIT Chart -->
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 chart-card" data-course="bsit">
-        <h2 class="text-lg font-semibold mb-4">BSIT</h2>
-        <canvas id="bsitChart"></canvas>
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs chart-card" data-course="bsit">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-[#0F3D87]">BSIT</span>
+            <span class="text-xs text-slate-500">Information Technology</span>
+          </div>
+        </div>
+        <canvas id="bsitChart" class="max-h-72"></canvas>
       </div>
 
       <!-- BIT Chart -->
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 chart-card" data-course="bit">
-        <h2 class="text-lg font-semibold mb-4">BIT</h2>
-        <canvas id="bitChart"></canvas>
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs chart-card" data-course="bit">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-[#0F3D87]">BIT</span>
+            <span class="text-xs text-slate-500">Industrial Technology</span>
+          </div>
+        </div>
+        <canvas id="bitChart" class="max-h-72"></canvas>
       </div>
 
       <!-- BEED Chart -->
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 chart-card" data-course="beed">
-        <h2 class="text-lg font-semibold mb-4">BEED</h2>
-        <canvas id="beedChart"></canvas>
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs chart-card" data-course="beed">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700">BEED</span>
+            <span class="text-xs text-slate-500">Elementary Education</span>
+          </div>
+        </div>
+        <canvas id="beedChart" class="max-h-72"></canvas>
       </div>
 
       <!-- BTLED Chart -->
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 chart-card" data-course="btled">
-        <h2 class="text-lg font-semibold mb-4">BTLED</h2>
-        <canvas id="btledChart"></canvas>
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs chart-card" data-course="btled">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700">BTLED</span>
+            <span class="text-xs text-slate-500">Tech & Livelihood Education</span>
+          </div>
+        </div>
+        <canvas id="btledChart" class="max-h-72"></canvas>
       </div>
 
       <!-- BSED Chart -->
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 chart-card" data-course="bsed">
-        <h2 class="text-lg font-semibold mb-4">BSED</h2>
-        <canvas id="bsedChart"></canvas>
+      <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs chart-card" data-course="bsed">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700">BSED</span>
+            <span class="text-xs text-slate-500">Secondary Education</span>
+          </div>
+        </div>
+        <canvas id="bsedChart" class="max-h-72"></canvas>
       </div>
     </div>
   </main>
@@ -360,9 +376,10 @@ while ($row = $res->fetch_assoc()) {
           datasets: [{
             label: courseLabel,
             data: [0, 0],
-            backgroundColor: ['#10b981', '#ef4444'],
-            borderColor: ['#059669', '#dc2626'],
-            borderWidth: 1
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderColor: ['#059669', '#d97706'],
+            borderWidth: 1,
+            borderRadius: 4
           }]
         },
         options: {
@@ -370,16 +387,21 @@ while ($row = $res->fetch_assoc()) {
           maintainAspectRatio: true,
           plugins: {
             legend: {
-              display: true,
-              position: 'top'
+              display: false
             }
           },
           scales: {
             y: {
               beginAtZero: true,
               ticks: {
-                stepSize: 1
-              }
+                stepSize: 1,
+                font: { family: 'ui-sans-serif, system-ui' }
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              ticks: { font: { family: 'ui-sans-serif, system-ui' } },
+              grid: { display: false }
             }
           }
         }
@@ -394,8 +416,10 @@ while ($row = $res->fetch_assoc()) {
           const courseId = course.toLowerCase();
           createChart(courseId, course);
         });
+        document.getElementById('totalStudentsCount').textContent = '0';
         document.getElementById('onTimeCount').textContent = '0';
         document.getElementById('lateCount').textContent = '0';
+        document.getElementById('noTimeInCount').textContent = '0';
         return;
       }
 
@@ -430,18 +454,15 @@ while ($row = $res->fetch_assoc()) {
       const chartCards = document.querySelectorAll('.chart-card');
       
       if (selectedCourse) {
-        // Show only the selected course chart
         chartCards.forEach(card => {
           if (card.dataset.course === selectedCourse.toLowerCase()) {
             card.style.display = 'block';
-            // Make it full width when single course is selected
-            card.style.gridColumn = 'span 1';
+            card.style.gridColumn = 'span 2';
           } else {
             card.style.display = 'none';
           }
         });
         
-        // Update statistics to show only selected course data
         const scheduleId = document.getElementById('scheduleSelect').value;
         if (scheduleId) {
           fetch(`?api=analytics&schedule_id=${encodeURIComponent(scheduleId)}&course=${encodeURIComponent(selectedCourse)}`)
@@ -457,13 +478,11 @@ while ($row = $res->fetch_assoc()) {
             .catch(err => console.error('Error:', err));
         }
       } else {
-        // Show all course charts
         chartCards.forEach(card => {
           card.style.display = 'block';
           card.style.gridColumn = 'auto';
         });
         
-        // Restore total statistics
         const scheduleId = document.getElementById('scheduleSelect').value;
         if (scheduleId) {
           fetch(`?api=analytics&schedule_id=${encodeURIComponent(scheduleId)}`)
@@ -480,7 +499,6 @@ while ($row = $res->fetch_assoc()) {
       }
     });
 
-    // Export button functionality
     document.getElementById('exportBtn').addEventListener('click', function() {
       const scheduleId = document.getElementById('scheduleSelect').value;
       const selectedCourse = document.getElementById('courseFilter').value;
@@ -498,20 +516,10 @@ while ($row = $res->fetch_assoc()) {
       window.location.href = url;
     });
 
-    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
       courses.forEach(course => {
         createChart(course.toLowerCase(), course);
       });
     });
-
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
   </script>
-</body>
-</html>
+  <?php include __DIR__ . '/includes/footer.php'; ?>

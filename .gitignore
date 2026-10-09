@@ -24,6 +24,7 @@ desktop.ini
 # Office & Raw Data sheets (Student PII)
 *.docx
 *.xlsx
+*.csv
 # Keep schema/database template, ignore local data exports if needed
 # 4thYr_*.csv
 

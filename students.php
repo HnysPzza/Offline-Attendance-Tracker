@@ -119,7 +119,9 @@ function read_xlsx_rows($filePath) {
             $idx = xlsx_column_index($ref);
             $cellType = (string)$cell['t'];
             $value = '';
-            if (!isset($cell->v)) {
+            if ($cellType === 'inlineStr' && isset($cell->is->t)) {
+                $value = (string)$cell->is->t;
+            } elseif (!isset($cell->v)) {
                 $value = '';
             } else {
                 $v = (string)$cell->v;
@@ -385,7 +387,7 @@ if (isset($_GET['api']) && $_GET['api'] === 'students') {
     header('Content-Type: application/json');
     $q = trim($_GET['q'] ?? '');
     $page = max(1, intval($_GET['page'] ?? 1));
-    $perPage = 50; $offset = ($page - 1) * $perPage;
+    $perPage = 13; $offset = ($page - 1) * $perPage;
     $sort = $_GET['sort'] ?? 'created_at';
     $dir = strtolower($_GET['dir'] ?? 'desc');
     $allowedSorts = ['student_id','name','course','year_level','section','gender','department','created_at'];
@@ -418,7 +420,7 @@ if (isset($_GET['api']) && $_GET['api'] === 'students') {
     exit;
 }
 
-$perPage = 50;
+$perPage = 13;
 $page = max(1, intval($_GET['page'] ?? 1));
 $offset = ($page - 1) * $perPage;
 $count = (int)$db->query('SELECT COUNT(*) c FROM students')->fetch_assoc()['c'];
@@ -436,211 +438,320 @@ $stmt->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Students</title>
+  <title>Students Roster - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=<?php echo filemtime(__DIR__ . '/assets/css/responsive.css'); ?>">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
-      </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a><a href="analytics.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Analytics</a>
-      </nav>
-    </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a><a href="analytics.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Analytics</a>
-    </nav>
-  </header>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'students.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
 
-  <main class="max-w-[92rem] mx-auto px-4 sm:px-6 py-6 sm:py-8 grid lg:grid-cols-3 gap-4 sm:gap-6">
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 lg:col-span-1">
-      <h2 class="text-lg font-semibold mb-4">Add Student</h2>
-      <?php if ($error): ?>
-        <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm hidden"><?php echo h($error); ?></div>
-      <?php elseif ($message): ?>
-        <div class="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm hidden"><?php echo h($message); ?></div>
-      <?php endif; ?>
-      <form method="post" class="space-y-4">
-        <input type="hidden" name="action" value="create" />
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Student ID</label>
-          <input name="student_id" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
+  <main class="max-w-[92rem] w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Student Directory & Roster</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Manage student records, batch imports, sections, and roster details.</p>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 border border-blue-200 text-[#0F3D87]">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Total Students: <strong class="text-[#0F3D87] font-bold"><?php echo $count; ?></strong></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Main Workspace (Clean 2-Column Grid) -->
+    <div class="grid lg:grid-cols-12 gap-6 items-stretch">
+      <!-- Left Column: Add Student & Data Operations (4 Cols) -->
+      <div class="lg:col-span-4 space-y-6">
+        <!-- Add Student Form Surface -->
+        <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
+          <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <div class="p-1.5 rounded-md bg-blue-50 text-[#0F3D87]">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-sm font-bold text-slate-900">Add Student Record</h2>
+          </div>
+
+          <form method="post" class="space-y-3.5 text-xs">
+            <input type="hidden" name="action" value="create" />
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Student ID *</label>
+              <input name="student_id" type="text" required placeholder="e.g. 1350879 or 4A-01" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Full Name *</label>
+              <input name="name" type="text" required placeholder="Last Name, First Name M.I." class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Year Level *</label>
+                <input name="year_level" type="text" required placeholder="e.g. 4" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Section *</label>
+                <input name="section" type="text" required placeholder="e.g. A" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Gender *</label>
+              <select name="gender" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Department *</label>
+                <select id="departmentSelect" name="department" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none">
+                  <option value="">Select</option>
+                  <option value="Education">Education</option>
+                  <option value="Technology">Technology</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Course *</label>
+                <select id="courseSelect" name="course" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none">
+                  <option value="">Select</option>
+                  <option value="BSIT">BSIT</option>
+                  <option value="BIT">BIT</option>
+                  <option value="BEED">BEED</option>
+                  <option value="BSED">BSED</option>
+                  <option value="BTLED">BTLED</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md bg-[#0F3D87] text-white font-semibold text-xs hover:bg-blue-900 transition-colors shadow-2xs">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Save Student</span>
+            </button>
+          </form>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Name</label>
-          <input name="name" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Year</label>
-          <input name="year_level" type="text" required placeholder="e.g. 3" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Section</label>
-          <input name="section" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Gender</label>
-          <select name="gender" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Department</label>
-          <select id="departmentSelect" name="department" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="Education">Education</option>
-            <option value="Technology">Technology</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Course</label>
-          <select id="courseSelect" name="course" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="BSIT">BSIT</option>
-            <option value="BIT">BIT</option>
-            <option value="BEED">BEED</option>
-            <option value="BSED">BSED</option>
-            <option value="BTLED">BTLED</option>
-          </select>
-        </div>
-        <div>
-          <button class="inline-flex items-center px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95">Save</button>
-        </div>
-      </form>
-      <hr class="my-6">
-      <h3 class="text-base font-semibold mb-2">Data Management</h3>
-      <div class="flex flex-wrap gap-4">
-        <div class="flex-1">
-          <h4 class="text-base font-semibold mb-2">Import CSV/XLSX</h4>
-          <p class="text-xs text-gray-500 mb-3">Required columns: Student ID, Full Name (Last Name, First Name, Middle Initial), Course, Year, Section, Gender, Department</p>
-          <form method="post" enctype="multipart/form-data" class="space-y-3">
+
+        <!-- Batch Data Management Surface -->
+        <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
+          <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <div class="p-1.5 rounded-md bg-amber-50 text-amber-700">
+              <i data-lucide="file-up" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-sm font-bold text-slate-900">Batch Import (CSV / XLSX)</h2>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" class="space-y-3 text-xs">
             <input type="hidden" name="action" value="import" />
-            <input type="file" name="import_file" accept=".csv,.xlsx" required class="w-full text-sm" />
-            <button class="inline-flex items-center px-4 py-2 rounded-md bg-[#D4AF37] text-[#0F3D87] hover:opacity-95">Import CSV/XLSX</button>
+            <p class="text-[11px] text-slate-500 leading-normal">
+              Required headers: Student ID, Full Name, Course, Year, Section, Gender, Department.
+            </p>
+            <div class="relative border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-slate-300 bg-slate-50/50 transition-colors text-center">
+              <input type="file" name="import_file" accept=".csv,.xlsx" required class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white file:text-slate-700 file:shadow-2xs file:border file:border-slate-300 hover:file:bg-slate-50 cursor-pointer" />
+            </div>
+            <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs transition-colors">
+              <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Upload & Import</span>
+            </button>
           </form>
-        </div>
-        <div class="flex-1">
-          <h4 class="text-base font-semibold mb-2">Truncate Students</h4>
-          <p class="text-xs text-gray-500 mb-3">This will permanently delete all students from the database. This action cannot be undone.</p>
-          <form method="post" onsubmit="return handleTruncate(event);">
-            <input type="hidden" name="action" value="truncate" />
-            <button type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700" onclick="handleTruncate(event)">Truncate Data</button>
-          </form>
-        </div>
-      </div>
-    </div>
 
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6 overflow-x-auto lg:col-span-2">
-      <h2 class="text-lg font-semibold mb-4">Students List</h2>
-      <div class="mb-4 p-3 rounded-md bg-blue-50 border border-blue-200">
-        <p class="text-sm font-medium text-blue-900">Total Students: <span class="font-bold text-lg text-blue-600"><?php echo $count; ?></span></p>
-      </div>
-      <div class="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
-        <h4 class="text-sm font-semibold text-red-900 mb-2">Delete Section Students</h4>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <select id="deleteSectionCourse" class="flex-1 min-w-0 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" data-placeholder-option>
-            <option value="">Select Course</option>
-            <option value="BSIT">BSIT</option>
-            <option value="BIT">BIT</option>
-            <option value="BEED">BEED</option>
-            <option value="BSED">BSED</option>
-            <option value="BTLED">BTLED</option>
-          </select>
-          <select id="deleteSectionYear" class="flex-1 min-w-0 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select Year</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-          </select>
-          <select id="deleteSectionSection" class="flex-1 min-w-0 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select Section</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-          </select>
-          <button id="deleteSectionBtn" type="button" class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 touch-target shrink-0 whitespace-nowrap font-medium">Delete Section</button>
+          <hr class="border-slate-100 my-3">
+
+          <!-- Truncate Danger Zone -->
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Danger Zone</span>
+            </div>
+            <form method="post" onsubmit="return handleTruncate(event);">
+              <input type="hidden" name="action" value="truncate" />
+              <button type="button" onclick="handleTruncate(event)" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+                <span>Truncate All Students</span>
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-      <div class="mb-4 flex flex-col sm:flex-row gap-2">
-        <input id="studentsSearch" type="search" placeholder="Search by ID/Name or combined filter (e.g. BSIT 1-B)" class="flex-1 min-w-0 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        <button id="studentsSearchBtn" class="px-4 py-2 rounded-md bg-[#D4AF37] text-[#0F3D87] hover:opacity-90 touch-target shrink-0">Search</button>
-      </div>
-      <p class="text-xs text-gray-500 mb-3">Tip: You can search by a combined class filter like <span class="font-semibold">BSIT 1-B</span>.</p>
-      <div class="overflow-x-auto -mx-2 sm:mx-0">
-      <table class="table-responsive-cards min-w-full text-sm divide-y divide-gray-200">
-        <thead>
-          <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide select-none">
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="student_id">Student ID</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="name">Name</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="course">Course</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="year_level">Year</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="section">Section</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="gender">Gender</th>
-            <th class="py-2 pr-4 font-medium cursor-pointer" data-sort="department">Department</th>
-            <th class="py-2 pr-4 font-medium min-w-[150px]">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="studentsBody">
-          <?php foreach ($students as $s): ?>
-            <tr class="border-b last:border-0 hover:bg-gray-50" data-id="<?php echo (int)$s['id']; ?>" data-student_id="<?php echo h($s['student_id']); ?>" data-name="<?php echo h($s['name']); ?>" data-course="<?php echo h($s['course']); ?>" data-year_level="<?php echo h($s['year_level']); ?>" data-section="<?php echo h($s['section']); ?>" data-gender="<?php echo h($s['gender']); ?>" data-department="<?php echo h($s['department']); ?>">
-              <td class="py-2 pr-4" data-label="Student ID"><?php echo h($s['student_id']); ?></td>
-              <td class="py-2 pr-4" data-label="Name"><?php echo h($s['name']); ?></td>
-              <td class="py-2 pr-4" data-label="Course"><?php echo h($s['course']); ?></td>
-              <td class="py-2 pr-4" data-label="Year"><?php echo h($s['year_level']); ?></td>
-              <td class="py-2 pr-4" data-label="Section"><?php echo h($s['section']); ?></td>
-              <td class="py-2 pr-4" data-label="Gender"><?php echo h($s['gender']); ?></td>
-              <td class="py-2 pr-4" data-label="Department"><?php echo h($s['department']); ?></td>
-              <td class="py-2 pr-4 min-w-[150px]" data-label="Actions">
-                <div class="cell-actions inline-flex flex-wrap gap-2">
-                <button type="button" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] text-white hover:opacity-95 text-xs font-medium touch-target" data-edit>Edit</button>
-                <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
-                  <input type="hidden" name="action" value="delete" />
-                  <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
-                  <button class="px-3.5 py-2 sm:py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-xs font-medium touch-target">Delete</button>
-                </form>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-      </div>
-      <div class="flex items-center justify-between mt-4 text-sm" id="studentsPagerWrap">
-        <div id="studentsPageInfo">Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?></div>
-        <div class="space-x-2" id="studentsPager">
-          <?php if ($page > 1): ?>
-            <a class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" href="?page=<?php echo (int)($page-1); ?>">Prev</a>
-          <?php endif; ?>
-          <?php if ($page < $totalPages): ?>
-            <a class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" href="?page=<?php echo (int)($page+1); ?>">Next</a>
-          <?php endif; ?>
+
+      <!-- Right Column: Student Directory Table & Filters (8 Cols) -->
+      <div class="lg:col-span-8 border border-slate-200 rounded-lg bg-white px-5 py-4 shadow-xs flex flex-col justify-between h-full">
+        <!-- Top Compact Toolbar (Search + Filters + Delete) -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <!-- Live Search Bar -->
+          <div class="relative flex-1 min-w-[180px]">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input id="studentsSearch" type="search" placeholder="Search ID, Name, or class (e.g. BSIT 1-B)..." class="w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none transition-colors" />
+            <button id="studentsSearchBtn" class="hidden">Search</button>
+          </div>
+
+          <!-- Compact Filter Controls -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <select id="deleteSectionCourse" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+              <option value="">Course</option>
+              <option value="BSIT">BSIT</option>
+              <option value="BIT">BIT</option>
+              <option value="BEED">BEED</option>
+              <option value="BSED">BSED</option>
+              <option value="BTLED">BTLED</option>
+            </select>
+            <select id="deleteSectionYear" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+              <option value="">Year</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+            </select>
+            <select id="deleteSectionSection" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+              <option value="">Sec</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+            <button id="deleteSectionBtn" type="button" title="Delete all students in selected section" class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shrink-0 h-[32px]">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modern Flat Student Table Container (Fitted, non-scrollable) -->
+        <div class="table-container overflow-x-auto">
+          <table class="table-modern w-full">
+            <thead>
+              <tr class="select-none">
+                <th class="cursor-pointer w-24 text-left" data-sort="student_id">ID</th>
+                <th class="cursor-pointer min-w-[180px] text-left" data-sort="name">Student Name</th>
+                <th class="cursor-pointer w-20 text-left" data-sort="course">Course</th>
+                <th class="cursor-pointer w-16 text-center" data-sort="year_level">Year</th>
+                <th class="cursor-pointer w-16 text-center" data-sort="section">Section</th>
+                <th class="cursor-pointer w-20 text-left" data-sort="gender">Gender</th>
+                <th class="cursor-pointer w-28 text-left" data-sort="department">Department</th>
+                <th class="w-24 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody">
+              <?php foreach ($students as $s): ?>
+                <tr data-id="<?php echo (int)$s['id']; ?>" data-student_id="<?php echo h($s['student_id']); ?>" data-name="<?php echo h($s['name']); ?>" data-course="<?php echo h($s['course']); ?>" data-year_level="<?php echo h($s['year_level']); ?>" data-section="<?php echo h($s['section']); ?>" data-gender="<?php echo h($s['gender']); ?>" data-department="<?php echo h($s['department']); ?>">
+                  <td class="font-mono text-xs font-semibold text-slate-600"><?php echo h($s['student_id']); ?></td>
+                  <td class="font-medium text-slate-900 text-sm"><?php echo h($s['name']); ?></td>
+                  <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($s['course']); ?></span></td>
+                  <td class="text-center font-medium text-slate-600"><?php echo h($s['year_level']); ?></td>
+                  <td class="text-center font-semibold text-slate-700"><?php echo h($s['section']); ?></td>
+                  <td class="text-slate-600 font-medium"><?php echo h($s['gender']); ?></td>
+                  <td class="text-slate-600 font-medium"><?php echo h($s['department']); ?></td>
+                  <td class="text-center">
+                    <div class="inline-flex items-center gap-2.5 justify-center">
+                      <button type="button" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
+                        <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Student" aria-label="Delete Student">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pager Toolbar -->
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500" id="studentsPagerWrap">
+          <div id="studentsPageInfo">Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?></div>
+          <div class="inline-flex items-center gap-1" id="studentsPager">
+            <?php if ($page > 1): ?>
+              <a class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors" href="?page=<?php echo (int)($page-1); ?>">Prev</a>
+            <?php endif; ?>
+            <?php if ($page < $totalPages): ?>
+              <a class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors" href="?page=<?php echo (int)($page+1); ?>">Next</a>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
     </div>
   </main>
+
+  <!-- Edit Student Modal (Modern Flat Dialog) -->
+  <div id="editStudentModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" data-edit-close></div>
+    <div class="relative bg-white rounded-lg shadow-xl border border-slate-200 max-w-md w-full p-5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="p-1.5 rounded-md bg-blue-50 text-[#0F3D87]">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Edit Student Record</h3>
+        </div>
+        <button type="button" class="text-slate-400 hover:text-slate-600 p-1" data-edit-close>
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="editStudentForm" method="post" class="space-y-3 text-xs">
+        <input type="hidden" name="action" value="update" />
+        <input type="hidden" name="id" value="" />
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Student ID</label>
+          <input name="student_id" type="text" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Full Name</label>
+          <input name="name" type="text" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Year Level</label>
+            <input name="year_level" type="text" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Section</label>
+            <input name="section" type="text" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Gender</label>
+          <select name="gender" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Department</label>
+            <select id="editDepartment" name="department" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
+              <option value="Education">Education</option>
+              <option value="Technology">Technology</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Course</label>
+            <select id="editCourse" name="course" required class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
+              <option value="BSIT">BSIT</option>
+              <option value="BIT">BIT</option>
+              <option value="BEED">BEED</option>
+              <option value="BSED">BSED</option>
+              <option value="BTLED">BTLED</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" class="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium" data-edit-close>Cancel</button>
+          <button type="submit" class="px-4 py-1.5 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold shadow-2xs">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const deptEl = document.getElementById('departmentSelect');
@@ -648,6 +759,7 @@ $stmt->close();
       const all = ['BSIT','BIT','BEED','BSED','BTLED'];
       const byDept = { Education: ['BEED','BSED','BTLED'], Technology: ['BSIT','BIT'] };
       function refreshCourses() {
+        if (!deptEl || !courseEl) return;
         const dep = deptEl.value;
         const allowed = byDept[dep] || all;
         const current = courseEl.value;
@@ -659,77 +771,23 @@ $stmt->close();
         if (byDept.Technology.indexOf(c) >= 0) return 'Technology';
         return '';
       }
-      deptEl.addEventListener('change', refreshCourses);
-      courseEl.addEventListener('change', () => {
-        const c = courseEl.value;
-        const d = deptForCourse(c);
-        if (d && deptEl.value !== d) {
-          deptEl.value = d;
-          const keep = c;
-          refreshCourses();
-          courseEl.value = keep;
-        }
-      });
-      refreshCourses();
+      if (deptEl) deptEl.addEventListener('change', refreshCourses);
+      if (courseEl) {
+        courseEl.addEventListener('change', () => {
+          const c = courseEl.value;
+          const d = deptForCourse(c);
+          if (d && deptEl.value !== d) {
+            deptEl.value = d;
+            const keep = c;
+            refreshCourses();
+            courseEl.value = keep;
+          }
+        });
+        refreshCourses();
+      }
     });
   </script>
-  <div id="editStudentModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" data-edit-close></div>
-    <div class="relative bg-white rounded-xl shadow-xl ring-1 ring-gray-200 max-w-md w-full mx-4">
-      <form id="editStudentForm" method="post" class="p-6 space-y-4">
-        <input type="hidden" name="action" value="update" />
-        <input type="hidden" name="id" value="" />
-        <div class="text-base font-semibold text-gray-900">Edit Student</div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Student ID</label>
-          <input name="student_id" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Name</label>
-          <input name="name" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Year</label>
-          <input name="year_level" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Section</label>
-          <input name="section" type="text" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Gender</label>
-          <select name="gender" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Department</label>
-          <select id="editDepartment" name="department" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="Education">Education</option>
-            <option value="Technology">Technology</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Course</label>
-          <select id="editCourse" name="course" required class="mt-1 w-full rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">Select</option>
-            <option value="BSIT">BSIT</option>
-            <option value="BIT">BIT</option>
-            <option value="BEED">BEED</option>
-            <option value="BSED">BSED</option>
-            <option value="BTLED">BTLED</option>
-          </select>
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200" data-edit-close>Cancel</button>
-          <button class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
+
   <script>
     (function(){
       // Client-side search/sort/paginate
@@ -741,22 +799,26 @@ $stmt->close();
       const pager = document.getElementById('studentsPager');
       function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
       function rowHtml(st){
-        return `<tr class="border-b last:border-0 hover:bg-gray-50" data-id="${esc(st.id)}" data-student_id="${esc(st.student_id)}" data-name="${esc(st.name)}" data-course="${esc(st.course)}" data-year_level="${esc(st.year_level)}" data-section="${esc(st.section)}" data-gender="${esc(st.gender)}" data-department="${esc(st.department)}">
-          <td class="py-2 pr-4" data-label="Student ID">${esc(st.student_id)}</td>
-          <td class="py-2 pr-4" data-label="Name">${esc(st.name)}</td>
-          <td class="py-2 pr-4" data-label="Course">${esc(st.course)}</td>
-          <td class="py-2 pr-4" data-label="Year">${esc(st.year_level)}</td>
-          <td class="py-2 pr-4" data-label="Section">${esc(st.section)}</td>
-          <td class="py-2 pr-4" data-label="Gender">${esc(st.gender)}</td>
-          <td class="py-2 pr-4" data-label="Department">${esc(st.department)}</td>
-          <td class="py-2 pr-4 min-w-[150px]" data-label="Actions">
-            <div class="cell-actions inline-flex flex-wrap gap-2">
-            <button type="button" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] text-white hover:opacity-95 text-xs font-medium touch-target" data-edit>Edit</button>
-            <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
-              <input type="hidden" name="action" value="delete" />
-              <input type="hidden" name="id" value="${esc(st.id)}" />
-              <button class="px-3.5 py-2 sm:py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-xs font-medium touch-target">Delete</button>
-            </form>
+        return `<tr data-id="${esc(st.id)}" data-student_id="${esc(st.student_id)}" data-name="${esc(st.name)}" data-course="${esc(st.course)}" data-year_level="${esc(st.year_level)}" data-section="${esc(st.section)}" data-gender="${esc(st.gender)}" data-department="${esc(st.department)}">
+          <td class="font-mono text-xs font-semibold text-slate-600">${esc(st.student_id)}</td>
+          <td class="font-medium text-slate-900 text-sm">${esc(st.name)}</td>
+          <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">${esc(st.course)}</span></td>
+          <td class="text-center font-medium text-slate-600">${esc(st.year_level)}</td>
+          <td class="text-center font-semibold text-slate-700">${esc(st.section)}</td>
+          <td class="text-slate-600 font-medium">${esc(st.gender)}</td>
+          <td class="text-slate-600 font-medium">${esc(st.department)}</td>
+          <td class="text-center">
+            <div class="inline-flex items-center gap-2.5 justify-center">
+              <button type="button" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="id" value="${esc(st.id)}" />
+                <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Student" aria-label="Delete Student">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </form>
             </div>
           </td>
         </tr>`;
@@ -765,9 +827,10 @@ $stmt->close();
         tbody.innerHTML = (data.students||[]).map(rowHtml).join('');
         pageInfo.textContent = `Page ${data.page} of ${data.totalPages}`;
         let phtml = '';
-        if (data.page > 1) phtml += `<button data-page="${data.page-1}" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Prev</button>`;
-        if (data.page < data.totalPages) phtml += `<button data-page="${data.page+1}" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Next</button>`;
+        if (data.page > 1) phtml += `<button data-page="${data.page-1}" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Prev</button>`;
+        if (data.page < data.totalPages) phtml += `<button data-page="${data.page+1}" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Next</button>`;
         pager.innerHTML = phtml;
+        if (window.refreshIcons) window.refreshIcons();
       }
       let controller=null; function load(page){
         sPage = page||1; sQ = input?input.value.trim():'';
@@ -788,6 +851,7 @@ $stmt->close();
         load(1);
       });
       if (pager) pager.addEventListener('click', (e)=>{ const p=e.target?.dataset?.page; if(p){ e.preventDefault(); load(parseInt(p,10)||1);} });
+      
       // Edit modal
       const overlay = document.getElementById('editStudentModal');
       const form = document.getElementById('editStudentForm');
@@ -800,7 +864,6 @@ $stmt->close();
         form.section.value = tr.dataset.section||'';
         form.gender.value = tr.dataset.gender||'';
         document.getElementById('editDepartment').value = tr.dataset.department||'';
-        // refresh course options to match department
         (function(){
           const byDept = { Education: ['BEED','BSED','BTLED'], Technology: ['BSIT','BIT'] };
           const all = ['BSIT','BIT','BEED','BSED','BTLED'];
@@ -811,6 +874,7 @@ $stmt->close();
           cEl.value = tr.dataset.course||'';
         })();
         overlay.classList.remove('hidden'); overlay.classList.add('flex');
+        if (window.refreshIcons) window.refreshIcons();
       }
       document.addEventListener('click', (e)=>{
         const btn = e.target.closest('button[data-edit]');
@@ -830,36 +894,50 @@ $stmt->close();
         if (allowed.indexOf(cur)>=0) editCourse.value = cur;
       }
       function deptForCourse(c){ if(['BEED','BSED','BTLED'].indexOf(c)>=0) return 'Education'; if(['BSIT','BIT'].indexOf(c)>=0) return 'Technology'; return ''; }
-      editDep.addEventListener('change', refreshEditCourses);
-      editCourse.addEventListener('change', ()=>{ const d=deptForCourse(editCourse.value); if(d && editDep.value!==d){ editDep.value=d; const keep=editCourse.value; refreshEditCourses(); editCourse.value=keep; }});
-      // initial load on page ready (enhancement)
+      if (editDep) editDep.addEventListener('change', refreshEditCourses);
+      if (editCourse) editCourse.addEventListener('change', ()=>{ const d=deptForCourse(editCourse.value); if(d && editDep.value!==d){ editDep.value=d; const keep=editCourse.value; refreshEditCourses(); editCourse.value=keep; }});
       load(1);
     })();
   </script>
-  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" data-modal-close></div>
-    <div id="appModalPanel" class="relative bg-white rounded-xl shadow-xl ring-1 ring-gray-200 max-w-md w-full mx-4 border-l-4" style="border-left-color:#0F3D87;">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 id="appModalTitle" class="text-base font-semibold text-gray-900">Notice</h3>
+
+  <!-- Modal Dialog -->
+  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" data-modal-close></div>
+    <div id="appModalPanel" class="relative bg-white rounded-lg shadow-xl border border-slate-200 max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center gap-2.5">
+        <div id="modalIconBox" class="p-2 rounded-full bg-blue-50 text-[#0F3D87]">
+          <i data-lucide="info" class="w-5 h-5"></i>
+        </div>
+        <h3 id="appModalTitle" class="text-sm font-bold text-slate-900">Notice</h3>
       </div>
-      <div class="px-6 py-4">
-        <p id="appModalMsg" class="text-sm text-gray-700"></p>
-      </div>
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95" data-modal-close>OK</button>
+      <p id="appModalMsg" class="text-xs text-slate-600 leading-relaxed"></p>
+      <div class="flex justify-end pt-2">
+        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white text-xs font-semibold hover:bg-blue-900 transition-colors" data-modal-close>OK</button>
       </div>
     </div>
   </div>
+
   <script>
     function openModal(title, message, type) {
       const overlay = document.getElementById('appModal');
-      const panel = document.getElementById('appModalPanel');
       const ttl = document.getElementById('appModalTitle');
       const msg = document.getElementById('appModalMsg');
+      const iconBox = document.getElementById('modalIconBox');
       ttl.textContent = title || 'Notice';
       msg.textContent = message || '';
-      const color = type === 'error' ? '#dc2626' : (type === 'success' ? '#16a34a' : '#0F3D87');
-      panel.style.borderLeftColor = color;
+      if (iconBox) {
+        if (type === 'error') {
+          iconBox.className = 'p-2 rounded-full bg-rose-50 text-rose-600';
+          iconBox.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        } else if (type === 'success') {
+          iconBox.className = 'p-2 rounded-full bg-emerald-50 text-emerald-600';
+          iconBox.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i>';
+        } else {
+          iconBox.className = 'p-2 rounded-full bg-blue-50 text-[#0F3D87]';
+          iconBox.innerHTML = '<i data-lucide="info" class="w-5 h-5"></i>';
+        }
+        if (window.refreshIcons) window.refreshIcons();
+      }
       overlay.classList.remove('hidden');
       overlay.classList.add('flex');
       const close = () => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); };
@@ -873,13 +951,6 @@ $stmt->close();
   <script>document.addEventListener('DOMContentLoaded',()=>openModal('Success', <?php echo json_encode($message); ?>, 'success'));</script>
   <?php endif; ?>
   <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
     
     // Truncate with scary green skull warning
     function handleTruncate(event) {
@@ -1042,5 +1113,4 @@ $stmt->close();
       return text.replace(/[&<>"']/g, m => map[m]);
     }
   </script>
-</body>
-</html>
+  <?php include __DIR__ . '/includes/footer.php'; ?>

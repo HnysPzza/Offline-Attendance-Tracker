@@ -229,143 +229,226 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance Tracker</title>
+  <title>Time In/Out - Attendance Tracker</title>
   <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=<?php echo filemtime(__DIR__ . '/assets/css/responsive.css'); ?>">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'index.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
+
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5 flex-1">
+    <!-- Top Bar: Clock & Live Status (Replacing Giant Clock Card) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Quick Time In / Out</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Rapid attendance logging for scheduled campus sessions.</p>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs font-mono text-xs sm:text-sm font-semibold text-slate-800">
+          <i data-lucide="clock" class="w-4 h-4 text-[#0F3D87]"></i>
+          <span id="serverTime"><?php echo (new DateTime('now', new DateTimeZone(app_timezone())))->format('Y-m-d h:i:s A'); ?></span>
         </div>
       </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <?php if (is_local_access()): ?><a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a><?php endif; ?>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <?php if (is_local_access()): ?><a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a><a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a><a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a><?php endif; ?>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a><a href="analytics.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Analytics</a>
-      </nav>
     </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <?php if (is_local_access()): ?><a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a><a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a><a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a><a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a><?php endif; ?>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a><a href="analytics.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='analytics.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Analytics</a>
-    </nav>
-  </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-    <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg font-semibold mb-4">Quick Time In / Out</h2>
-      <?php if ($error): ?>
-        <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm hidden"><?php echo h($error); ?></div>
-      <?php elseif ($message): ?>
-        <div class="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm hidden"><?php echo h($message); ?></div>
-      <?php endif; ?>
-      <div class="mb-6 flex items-center justify-center"><div id="serverTime" class="text-3xl md:text-5xl font-semibold tracking-tight text-gray-900"><?php echo (new DateTime('now', new DateTimeZone(app_timezone())))->format('Y-m-d h:i:s A'); ?></div></div>
-      <?php if (!$hasToday): ?>
-        <div class="text-sm text-gray-700 mb-4">No schedules for today.<?php if (is_local_access()): ?> Create one in <a class="text-blue-600 underline" href="schedules.php">Schedules</a>.<?php else: ?> Contact the administrator to create schedules.<?php endif; ?></div>
-      <?php endif; ?>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">Schedule</label>
-          <select id="quickSchedule" class="mt-1 w-full rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Select schedule</option>
+    <?php if (!$hasToday): ?>
+      <div class="flex items-center gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm">
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 shrink-0"></i>
+        <span>No schedules configured for today. <?php if (is_local_access()): ?>Create one in <a class="font-semibold underline hover:text-amber-900" href="schedules.php">Schedules</a>.<?php else: ?>Contact the administrator to create a schedule.<?php endif; ?></span>
+      </div>
+    <?php endif; ?>
+
+    <!-- Controls Surface (Flat, No Floating Card Shadow) -->
+    <section class="border border-slate-200 rounded-lg bg-white p-4 sm:p-5 space-y-4 shadow-xs">
+      <!-- Schedule Selection -->
+      <div>
+        <label for="quickSchedule" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+          Select Active Schedule
+        </label>
+        <div class="relative">
+          <select id="quickSchedule" class="w-full appearance-none rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-slate-900 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none transition-colors">
+            <option value="">-- Choose a schedule to enable Time In / Out --</option>
             <?php foreach ($todaySchedules as $s): ?>
-              <option value="<?php echo (int)$s['id']; ?>" data-date="<?php echo h($s['schedule_date']); ?>"><?php echo h($s['schedule_date']); ?> — <?php echo h($s['title']); ?> — <?php echo h(date('h:i A', strtotime($s['start_time']))); ?> to <?php echo h(date('h:i A', strtotime($s['end_time']))); ?> (late: <?php echo (int)$s['late_minutes']; ?>m)</option>
+              <option value="<?php echo (int)$s['id']; ?>" data-date="<?php echo h($s['schedule_date']); ?>">
+                <?php echo h($s['schedule_date']); ?> &bull; <?php echo h($s['title']); ?> (<?php echo h(date('h:i A', strtotime($s['start_time']))); ?> - <?php echo h(date('h:i A', strtotime($s['end_time']))); ?>) [Late: <?php echo (int)$s['late_minutes']; ?>m]
+              </option>
             <?php endforeach; ?>
           </select>
-          <div id="scheduleHint" class="mt-2 text-xs text-gray-500"></div>
-        </div>
-        <form method="get" class="mb-4 flex gap-2">
-          <input id="quickSearch" type="search" name="q" value="<?php echo h($q); ?>" placeholder="Search by Student ID, Name, Course, Year, Section, Gender, Department" class="flex-1 rounded-md border border-gray-300 focus:ring-[#0F3D87] focus:border-[#0F3D87]" autofocus />
-          <button class="px-4 py-2 rounded-md bg-[#D4AF37] text-[#0F3D87] hover:opacity-90 hidden md:inline-flex">Search</button>
-          <?php if ($q !== ''): ?>
-            <a href="index.php" class="px-4 py-2 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200">Clear</a>
-          <?php endif; ?>
-        </form>
-        <div class="mb-4 rounded-md border border-gray-200 bg-gray-50 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
-          <div id="queueStatusText" class="text-gray-700">Queue: 0 pending</div>
-          <div class="flex items-center gap-2">
-            <button type="button" id="syncQueueBtn" class="px-3 py-1.5 rounded-md bg-[#0F3D87] text-white text-xs hover:opacity-95">Sync now</button>
-            <button type="button" id="clearQueueBtn" class="px-3 py-1.5 rounded-md bg-gray-200 text-gray-700 text-xs hover:bg-gray-300">Clear queue</button>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
           </div>
         </div>
-          <div class="overflow-x-auto -mx-4 sm:mx-0">
-            <table class="table-responsive-cards min-w-full text-sm divide-y divide-gray-200">
-              <thead>
-                <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-                  <th class="py-2 pr-4 font-medium">Student ID</th>
-                  <th class="py-2 pr-4 font-medium">Name</th>
-                  <th class="py-2 pr-4 font-medium">Course</th>
-                  <th class="py-2 pr-4 font-medium">Year</th>
-                  <th class="py-2 pr-4 font-medium">Section</th>
-                  <th class="py-2 pr-4 font-medium">Gender</th>
-                  <th class="py-2 pr-4 font-medium">Department</th>
-                  <th class="py-2 pr-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="studentsBody">
-                <?php foreach ($quickStudents as $st): ?>
-                  <tr class="border-b last:border-0 hover:bg-gray-50" data-student="<?php echo h($st['student_id']); ?>">
-                    <td class="py-2 pr-4" data-label="Student ID"><?php echo h($st['student_id']); ?></td>
-                    <td class="py-2 pr-4" data-label="Name"><?php echo h($st['name']); ?></td>
-                    <td class="py-2 pr-4" data-label="Course"><?php echo h($st['course']); ?></td>
-                    <td class="py-2 pr-4" data-label="Year"><?php echo h($st['year_level']); ?></td>
-                    <td class="py-2 pr-4" data-label="Section"><?php echo h($st['section']); ?></td>
-                    <td class="py-2 pr-4" data-label="Gender"><?php echo h($st['gender']); ?></td>
-                    <td class="py-2 pr-4" data-label="Department"><?php echo h($st['department']); ?></td>
-                    <td class="py-2 pr-4" data-label="Actions">
-                      <div class="cell-actions inline-flex flex-wrap gap-2">
-                      <form method="post" data-quick="1" class="inline">
-                        <input type="hidden" name="student_id" value="<?php echo h($st['student_id']); ?>" />
-                        <input type="hidden" name="schedule_id" value="" />
-                        <input type="hidden" name="q" value="<?php echo h($q); ?>" />
-                        <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
-                        <button name="action" value="time_in" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] text-white hover:opacity-95 text-xs font-medium touch-target" data-btn="in">Time In</button>
-                      </form>
-                      <form method="post" data-quick="1" class="inline">
-                        <input type="hidden" name="student_id" value="<?php echo h($st['student_id']); ?>" />
-                        <input type="hidden" name="schedule_id" value="" />
-                        <input type="hidden" name="q" value="<?php echo h($q); ?>" />
-                        <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
-                        <button name="action" value="time_out" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-gray-800 text-white hover:bg-gray-900 text-xs font-medium touch-target" data-btn="out">Time Out</button>
-                      </form>
-                      </div>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-            <?php if (count($quickStudents) === 0): ?>
-              <div class="text-sm text-gray-600 mt-4">No students found.</div>
-            <?php endif; ?>
-            <div class="flex items-center justify-between mt-4 text-sm">
-              <div id="pageInfo">Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?></div>
-              <div id="pager" class="space-x-2">
-                <?php if ($page > 1): ?>
-                  <a class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" href="?q=<?php echo urlencode($q); ?>&page=<?php echo (int)($page-1); ?>">Prev</a>
-                <?php endif; ?>
-                <?php if ($page < $totalPages): ?>
-                  <a class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" href="?q=<?php echo urlencode($q); ?>&page=<?php echo (int)($page+1); ?>">Next</a>
-                <?php endif; ?>
+        <div id="scheduleHint" class="mt-1 text-xs text-amber-600 font-medium"></div>
+      </div>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </div>
+          <input id="quickSearch" type="search" name="q" value="<?php echo h($q); ?>" placeholder="Search by Student ID, Name, Course, Year, Section..." class="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none transition-colors" autofocus />
+        </div>
+        <?php if ($q !== ''): ?>
+          <a href="index.php" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-300 text-xs font-medium transition-colors shadow-2xs">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+            <span>Clear</span>
+          </a>
+        <?php endif; ?>
+      </div>
+
+      <!-- Offline / Sync Queue Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+        <div class="flex items-center gap-2 text-slate-600 font-medium">
+          <i data-lucide="hard-drive" class="w-4 h-4 text-slate-500"></i>
+          <span id="queueStatusText">Queue: 0 pending</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="syncQueueBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0F3D87] text-white text-xs font-medium hover:bg-blue-900 transition-colors shadow-2xs">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Sync now</span>
+          </button>
+          <button type="button" id="clearQueueBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 hover:border-rose-300 transition-colors shadow-2xs">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+            <span>Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modern Flat Students Table -->
+      <div class="table-container">
+        <table class="table-modern w-full">
+          <thead>
+            <tr>
+              <th class="w-28 text-left">ID</th>
+              <th class="min-w-[180px] text-left">Student Name</th>
+              <th class="w-24 text-left">Course</th>
+              <th class="w-16 text-center">Year</th>
+              <th class="w-20 text-center">Section</th>
+              <th class="w-24 text-left">Gender</th>
+              <th class="w-36 text-left">Department</th>
+              <th class="w-64 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsBody">
+            <?php foreach ($quickStudents as $st): ?>
+              <tr data-student="<?php echo h($st['student_id']); ?>">
+                <td class="font-mono text-xs font-semibold text-slate-600"><?php echo h($st['student_id']); ?></td>
+                <td class="font-medium text-slate-900 text-sm"><?php echo h($st['name']); ?></td>
+                <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($st['course']); ?></span></td>
+                <td class="text-center font-medium text-slate-600"><?php echo h($st['year_level']); ?></td>
+                <td class="text-center font-semibold text-slate-700"><?php echo h($st['section']); ?></td>
+                <td class="text-slate-600 font-medium"><?php echo h($st['gender']); ?></td>
+                <td class="text-slate-600 font-medium"><?php echo h($st['department']); ?></td>
+                <td class="text-center">
+                  <div class="inline-flex items-center gap-2 justify-center flex-nowrap">
+                    <form method="post" data-quick="1" class="inline">
+                      <input type="hidden" name="student_id" value="<?php echo h($st['student_id']); ?>" />
+                      <input type="hidden" name="schedule_id" value="" />
+                      <input type="hidden" name="q" value="<?php echo h($q); ?>" />
+                      <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
+                      <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span class="whitespace-nowrap">Time In</span>
+                      </button>
+                    </form>
+                    <form method="post" data-quick="1" class="inline">
+                      <input type="hidden" name="student_id" value="<?php echo h($st['student_id']); ?>" />
+                      <input type="hidden" name="schedule_id" value="" />
+                      <input type="hidden" name="q" value="<?php echo h($q); ?>" />
+                      <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
+                      <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        <span class="whitespace-nowrap">Time Out</span>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <template id="studentRowTemplate">
+          <tr data-student="">
+            <td class="font-mono text-xs font-semibold text-slate-600 st-id"></td>
+            <td class="font-medium text-slate-900 text-sm st-name"></td>
+            <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 st-course"></span></td>
+            <td class="text-center font-medium text-slate-600 st-year"></td>
+            <td class="text-center font-semibold text-slate-700 st-sec"></td>
+            <td class="text-slate-600 font-medium st-gender"></td>
+            <td class="text-slate-600 font-medium st-dept"></td>
+            <td class="text-center">
+              <div class="inline-flex items-center gap-2 justify-center flex-nowrap">
+                <form method="post" data-quick="1" class="inline">
+                  <input type="hidden" name="student_id" value="" />
+                  <input type="hidden" name="schedule_id" value="" />
+                  <input type="hidden" name="q" value="" />
+                  <input type="hidden" name="page" value="" />
+                  <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                    <span class="whitespace-nowrap">Time In</span>
+                  </button>
+                </form>
+                <form method="post" data-quick="1" class="inline">
+                  <input type="hidden" name="student_id" value="" />
+                  <input type="hidden" name="schedule_id" value="" />
+                  <input type="hidden" name="q" value="" />
+                  <input type="hidden" name="page" value="" />
+                  <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    <span class="whitespace-nowrap">Time Out</span>
+                  </button>
+                </form>
               </div>
-            </div>
-          </div>
-    </div>
+            </td>
+          </tr>
+        </template>
+      </div>
+
+      <?php if (count($quickStudents) === 0): ?>
+        <div class="py-8 text-center text-sm text-slate-400">No students found matching your criteria.</div>
+      <?php endif; ?>
+
+      <!-- Pagination Toolbar -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+        <div id="pageInfo">Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?></div>
+        <div id="pager" class="inline-flex items-center gap-1">
+          <?php if ($page > 1): ?>
+            <a class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors" href="?q=<?php echo urlencode($q); ?>&page=<?php echo (int)($page-1); ?>">Prev</a>
+          <?php endif; ?>
+          <?php if ($page < $totalPages): ?>
+            <a class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors" href="?q=<?php echo urlencode($q); ?>&page=<?php echo (int)($page+1); ?>">Next</a>
+          <?php endif; ?>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <?php include __DIR__ . '/includes/footer.php'; ?>
+
+  <!-- Modal Dialog -->
+  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" data-modal-close></div>
+    <div id="appModalPanel" class="relative bg-white rounded-lg shadow-xl border border-slate-200 max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center gap-2.5">
+        <div id="modalIconBox" class="p-2 rounded-full bg-blue-50 text-[#0F3D87]">
+          <i data-lucide="info" class="w-5 h-5"></i>
+        </div>
+        <h3 id="appModalTitle" class="text-sm font-bold text-slate-900">Notice</h3>
+      </div>
+      <p id="appModalMsg" class="text-xs text-slate-600 leading-relaxed"></p>
+      <div class="flex justify-end pt-2">
+        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white text-xs font-semibold hover:bg-blue-900 transition-colors" data-modal-close>OK</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const el = document.getElementById('serverTime');
-    const start = new Date();
     setInterval(() => {
       const d = new Date();
       const pad = n => String(n).padStart(2,'0');
@@ -373,7 +456,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const displayHours = hours % 12 || 12;
       const s = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(displayHours)}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${ampm}`;
-      el.textContent = s;
+      if (el) el.textContent = s;
     }, 1000);
 
     function updateButtons() {
@@ -411,14 +494,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
           const btnIn = r.querySelector('button[data-btn="in"]');
           const btnOut = r.querySelector('button[data-btn="out"]');
           if (!btnIn || !btnOut) return;
-          // Reset base state
           btnIn.disabled = false; btnOut.disabled = false;
           btnIn.classList.remove('opacity-50'); btnOut.classList.remove('opacity-50');
           if (s.time_in) { btnIn.disabled = true; btnIn.classList.add('opacity-50'); btnIn.title = 'Already timed in'; }
           if (!s.time_in) { btnOut.disabled = true; btnOut.classList.add('opacity-50'); btnOut.title = 'No time in yet'; }
           if (s.time_out) { btnOut.disabled = true; btnOut.classList.add('opacity-50'); btnOut.title = 'Already timed out'; }
         });
-      }).catch(() => {/* ignore */});
+      }).catch(() => {});
     }
 
     const QUEUE_KEY = 'quickAttendanceQueueV1';
@@ -514,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
         f.addEventListener('submit', function(e) {
           e.preventDefault();
           const sched = document.getElementById('quickSchedule');
-          if (!sched || !sched.value) { alert('Select a schedule first.'); e.preventDefault(); return; }
+          if (!sched || !sched.value) { alert('Select a schedule first.'); return; }
           const hid = f.querySelector('input[name="schedule_id"]');
           if (hid) hid.value = sched.value;
           const studentId = (f.querySelector('input[name="student_id"]')?.value || '').trim();
@@ -552,46 +634,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
       const tbody = document.getElementById('studentsBody');
       const pageInfo = document.getElementById('pageInfo');
       const pager = document.getElementById('pager');
-      const e = s => String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-      let rows = '';
-      for (const st of (data.students||[])) {
-        rows += `
-          <tr class="border-b last:border-0 hover:bg-gray-50" data-student="${e(st.student_id)}">
-            <td class="py-2 pr-4" data-label="Student ID">${e(st.student_id)}</td>
-            <td class="py-2 pr-4" data-label="Name">${e(st.name)}</td>
-            <td class="py-2 pr-4" data-label="Course">${e(st.course)}</td>
-            <td class="py-2 pr-4" data-label="Year">${e(st.year_level)}</td>
-            <td class="py-2 pr-4" data-label="Section">${e(st.section)}</td>
-            <td class="py-2 pr-4" data-label="Gender">${e(st.gender)}</td>
-            <td class="py-2 pr-4" data-label="Department">${e(st.department)}</td>
-            <td class="py-2 pr-4" data-label="Actions">
-              <div class="cell-actions inline-flex flex-wrap gap-2">
-              <form method="post" data-quick="1" class="inline">
-                <input type="hidden" name="student_id" value="${e(st.student_id)}" />
-                <input type="hidden" name="schedule_id" value="" />
-                <input type="hidden" name="q" value="${e(document.getElementById('quickSearch').value)}" />
-                <input type="hidden" name="page" value="${e(data.page)}" />
-                <button name="action" value="time_in" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] text-white hover:opacity-95 text-xs font-medium touch-target" data-btn="in">Time In</button>
-              </form>
-              <form method="post" data-quick="1" class="inline">
-                <input type="hidden" name="student_id" value="${e(st.student_id)}" />
-                <input type="hidden" name="schedule_id" value="" />
-                <input type="hidden" name="q" value="${e(document.getElementById('quickSearch').value)}" />
-                <input type="hidden" name="page" value="${e(data.page)}" />
-                <button name="action" value="time_out" class="px-3.5 py-2 sm:py-1.5 rounded-md bg-gray-800 text-white hover:bg-gray-900 text-xs font-medium touch-target" data-btn="out">Time Out</button>
-              </form>
-              </div>
-            </td>
-          </tr>`;
+      const tpl = document.getElementById('studentRowTemplate');
+      const searchVal = document.getElementById('quickSearch')?.value || '';
+      tbody.innerHTML = '';
+      if (tpl && tpl.content) {
+        const frag = document.createDocumentFragment();
+        for (const st of (data.students || [])) {
+          const row = tpl.content.cloneNode(true).firstElementChild;
+          row.dataset.student = st.student_id;
+          row.querySelector('.st-id').textContent = st.student_id;
+          row.querySelector('.st-name').textContent = st.name;
+          row.querySelector('.st-course').textContent = st.course;
+          row.querySelector('.st-year').textContent = st.year_level;
+          row.querySelector('.st-sec').textContent = st.section;
+          row.querySelector('.st-gender').textContent = st.gender;
+          row.querySelector('.st-dept').textContent = st.department;
+          row.querySelectorAll('input[name="student_id"]').forEach(i => { i.value = st.student_id; });
+          row.querySelectorAll('input[name="q"]').forEach(i => { i.value = searchVal; });
+          row.querySelectorAll('input[name="page"]').forEach(i => { i.value = String(data.page || 1); });
+          frag.appendChild(row);
+        }
+        tbody.appendChild(frag);
       }
-      tbody.innerHTML = rows;
       pageInfo.textContent = `Page ${data.page} of ${data.totalPages}`;
       let phtml = '';
-      if (data.page > 1) phtml += `<button data-page="${data.page-1}" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Prev</button>`;
-      if (data.page < data.totalPages) phtml += `<button data-page="${data.page+1}" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Next</button>`;
+      if (data.page > 1) phtml += `<button data-page="${data.page-1}" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Prev</button>`;
+      if (data.page < data.totalPages) phtml += `<button data-page="${data.page+1}" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Next</button>`;
       pager.innerHTML = phtml;
       bindQuickForms();
       updateButtons();
+      if (window.refreshIcons) window.refreshIcons();
     }
 
     let studentsFetchController = null;
@@ -652,31 +724,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
       if (navigator.onLine) flushQueue(true);
     });
 
-  </script>
-  <div id="appModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" data-modal-close></div>
-    <div id="appModalPanel" class="relative bg-white rounded-xl shadow-xl ring-1 ring-gray-200 max-w-md w-full mx-4 border-l-4" style="border-left-color:#0F3D87;">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 id="appModalTitle" class="text-base font-semibold text-gray-900">Notice</h3>
-      </div>
-      <div class="px-6 py-4">
-        <p id="appModalMsg" class="text-sm text-gray-700"></p>
-      </div>
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-        <button type="button" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white hover:opacity-95" data-modal-close>OK</button>
-      </div>
-    </div>
-  </div>
-  <script>
     function openModal(title, message, type) {
       const overlay = document.getElementById('appModal');
-      const panel = document.getElementById('appModalPanel');
       const ttl = document.getElementById('appModalTitle');
       const msg = document.getElementById('appModalMsg');
+      const iconBox = document.getElementById('modalIconBox');
       ttl.textContent = title || 'Notice';
       msg.textContent = message || '';
-      const color = type === 'error' ? '#dc2626' : (type === 'success' ? '#16a34a' : '#0F3D87');
-      panel.style.borderLeftColor = color;
+      if (iconBox) {
+        if (type === 'error') {
+          iconBox.className = 'p-2 rounded-full bg-rose-50 text-rose-600';
+          iconBox.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        } else if (type === 'success') {
+          iconBox.className = 'p-2 rounded-full bg-emerald-50 text-emerald-600';
+          iconBox.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i>';
+        } else {
+          iconBox.className = 'p-2 rounded-full bg-blue-50 text-[#0F3D87]';
+          iconBox.innerHTML = '<i data-lucide="info" class="w-5 h-5"></i>';
+        }
+        if (window.refreshIcons) window.refreshIcons();
+      }
       overlay.classList.remove('hidden');
       overlay.classList.add('flex');
       const close = () => { overlay.classList.add('hidden'); overlay.classList.remove('flex'); };
@@ -689,14 +756,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
   <?php elseif ($message): ?>
   <script>document.addEventListener('DOMContentLoaded',()=>openModal('Success', <?php echo json_encode($message); ?>, 'success'));</script>
   <?php endif; ?>
-  <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
-  </script>
 </body>
 </html>

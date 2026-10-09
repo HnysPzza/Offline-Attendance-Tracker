@@ -139,180 +139,182 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Activity Log - Attendance Tracker</title>
+  <title>Activity Logs - Attendance Tracker</title>
+  <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
-<body class="bg-gray-50 min-h-screen antialiased">
-  <header class="sticky top-0 bg-[#0F3D87] text-white shadow-sm z-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between relative">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <img src="assets/logo.jpg" alt="Graduating Council Logo" class="h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-[#0F3D87] shadow-md object-cover flex-shrink-0" onerror="this.style.display='none'">
-        <div class="leading-tight min-w-0">
-          <div class="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest text-[#D4AF37] truncate">Graduating 2026 Council</div>
-          <div class="text-xs sm:text-sm md:text-base font-semibold truncate">CTU-Naga Extension Campus</div>
-        </div>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+  <?php 
+  $activePage = 'logs.php';
+  include __DIR__ . '/includes/header.php'; 
+  ?>
+
+  <main class="max-w-[92rem] w-full mx-auto px-4 sm:px-6 py-6 space-y-6 flex-1">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">System Activity Logs</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Audit trail of system events, time stamps, network IP clients, and administrative changes.</p>
       </div>
-      <button type="button" class="nav-mobile-toggle touch-target md:hidden" id="navToggle" aria-label="Open menu">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav class="nav-desktop hidden md:flex items-center gap-4 lg:gap-6 text-sm">
-        <a href="dashboard.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Dashboard</a>
-        <a href="index.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Time In/Out</a>
-        <a href="students.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Students</a>
-        <a href="schedules.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Schedules</a>
-        <a href="attendance.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Attendance</a>
-        <a href="logs.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">Logs</a>
-        <a href="qr.php" class="pb-1.5 border-b-2 transition-colors whitespace-nowrap <?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'border-[#D4AF37] text-white' : 'border-transparent text-blue-100 hover:text-white'; ?>">QR Access</a>
-      </nav>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 border border-blue-200 text-[#0F3D87]">
+          <i data-lucide="history" class="w-3.5 h-3.5"></i>
+          <span>Total Log Entries: <strong class="text-[#0F3D87] font-bold"><?php echo $count; ?></strong></span>
+        </span>
+      </div>
     </div>
-    <nav class="nav-mobile" id="navMobile" aria-hidden="true">
-      <a href="dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='dashboard.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Dashboard</a>
-      <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='index.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Time In/Out</a>
-      <a href="students.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='students.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Students</a>
-      <a href="schedules.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='schedules.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Schedules</a>
-      <a href="attendance.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='attendance.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Attendance</a>
-      <a href="logs.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='logs.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">Logs</a>
-      <a href="qr.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='qr.php' ? 'bg-[#D4AF37]/20 text-white font-medium' : 'text-blue-100 hover:bg-white/10'; ?>">QR Access</a>
-    </nav>
-  </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600 font-medium">Total Logins</p>
-            <p class="text-4xl font-bold text-[#0F3D87] mt-2"><?php echo $loginStats['total_logins']; ?></p>
-          </div>
-          <svg class="w-12 h-12 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+    <!-- Unified 3-Metric Toolbar -->
+    <div class="border border-slate-200 bg-white rounded-lg shadow-xs overflow-hidden grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Check-Ins</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-[#0F3D87] mt-1 font-mono"><?php echo $loginStats['total_logins']; ?></div>
+        </div>
+        <div class="p-2.5 rounded-full bg-blue-50 text-[#0F3D87]">
+          <i data-lucide="log-in" class="w-5 h-5"></i>
         </div>
       </div>
 
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600 font-medium">Today's Logins</p>
-            <p class="text-4xl font-bold text-green-600 mt-2"><?php echo $loginStats['today_logins']; ?></p>
-          </div>
-          <svg class="w-12 h-12 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Today's Check-Ins</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono"><?php echo $loginStats['today_logins']; ?></div>
+        </div>
+        <div class="p-2.5 rounded-full bg-emerald-50 text-emerald-600">
+          <i data-lucide="calendar-check" class="w-5 h-5"></i>
         </div>
       </div>
 
-      <div class="bg-white shadow-md ring-1 ring-gray-100 rounded-xl p-4 sm:p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600 font-medium">Unique Students</p>
-            <p class="text-4xl font-bold text-blue-600 mt-2"><?php echo $loginStats['unique_students']; ?></p>
-          </div>
-          <svg class="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM6 20h12a6 6 0 00-6-6 6 6 0 00-6 6z"/></svg>
+      <div class="p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Unique Active Students</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1 font-mono"><?php echo $loginStats['unique_students']; ?></div>
+        </div>
+        <div class="p-2.5 rounded-full bg-indigo-50 text-indigo-600">
+          <i data-lucide="users" class="w-5 h-5"></i>
         </div>
       </div>
     </div>
 
-    <div class="bg-white shadow-md ring-1 ring-gray-200 rounded-xl p-4 sm:p-6">
-      <h1 class="text-lg font-semibold text-gray-900 mb-4">Activity Log</h1>
-      <p class="text-sm text-gray-600 mb-4">View who requested access and what actions were taken by users (IP access, time in/out, student changes, schedule changes, exports).</p>
+    <!-- Main Log Surface -->
+    <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs space-y-4">
       <?php if ($truncated): ?>
-        <div class="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm"><strong>Success!</strong> All activity logs have been permanently deleted from the database.</div>
+        <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+          <span>All activity logs have been successfully cleared.</span>
+        </div>
       <?php endif; ?>
       <?php if ($clearError): ?>
-        <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm"><strong>Error!</strong> Failed to truncate logs. Please try again or check database permissions.</div>
+        <div class="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+          <span>Failed to truncate logs. Please try again.</span>
+        </div>
       <?php endif; ?>
 
-      <form method="get" class="flex flex-wrap gap-3 mb-6">
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Action</label>
-          <select name="action" class="rounded-md border border-gray-300 text-sm focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
-            <?php foreach ($actionLabels as $k => $label): ?>
-              <option value="<?php echo h($k); ?>" <?php echo $filter_action === $k ? 'selected' : ''; ?>><?php echo h($label); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Source</label>
-          <select name="source" class="rounded-md border border-gray-300 text-sm focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-            <option value="">All</option>
-            <option value="local" <?php echo $filter_source === 'local' ? 'selected' : ''; ?>>Local</option>
-            <option value="ip" <?php echo $filter_source === 'ip' ? 'selected' : ''; ?>>IP (Network)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
-          <input type="date" name="date" value="<?php echo h($filter_date); ?>" class="rounded-md border border-gray-300 text-sm focus:ring-[#0F3D87] focus:border-[#0F3D87]">
-        </div>
-        <div class="flex items-end gap-2">
-          <button type="submit" class="px-4 py-2 rounded-md bg-[#0F3D87] text-white text-sm hover:opacity-95">Filter</button>
-          <a href="?page=1" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">Clear</a>
-        </div>
-      </form>
+      <!-- Filter Controls & Actions Bar -->
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 pb-3 border-b border-slate-100 text-xs">
+        <form method="get" class="flex flex-wrap items-end gap-3 flex-1">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Event Action</label>
+            <select name="action" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+              <option value="">All Actions</option>
+              <?php foreach ($actionLabels as $k => $label): ?>
+                <option value="<?php echo h($k); ?>" <?php echo $filter_action === $k ? 'selected' : ''; ?>><?php echo h($label); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
 
-      <form method="post" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL logs from the database. This action CANNOT be undone! Are you absolutely sure?');" class="inline">
-        <input type="hidden" name="action" value="truncate_all_logs" />
-        <button type="submit" class="px-4 py-2 rounded-md bg-red-600 text-white text-sm hover:bg-red-700 font-semibold">🗑️ Truncate All Logs</button>
-      </form>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Source Origin</label>
+            <select name="source" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+              <option value="">All Sources</option>
+              <option value="local" <?php echo $filter_source === 'local' ? 'selected' : ''; ?>>Local Host</option>
+              <option value="ip" <?php echo $filter_source === 'ip' ? 'selected' : ''; ?>>Network Device (IP)</option>
+            </select>
+          </div>
 
-      <div class="overflow-x-auto -mx-2 sm:mx-0">
-        <table class="table-responsive-cards min-w-full text-sm divide-y divide-gray-200">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Date</label>
+            <input type="date" name="date" value="<?php echo h($filter_date); ?>" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold shadow-2xs transition-colors">
+              <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+              <span>Filter</span>
+            </button>
+            <a href="?page=1" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium transition-colors">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Clear</span>
+            </a>
+          </div>
+        </form>
+
+        <form method="post" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL logs from the database. This action CANNOT be undone! Are you absolutely sure?');" class="self-start md:self-end">
+          <input type="hidden" name="action" value="truncate_all_logs" />
+          <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold transition-colors">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Truncate All Logs</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Logs Table -->
+      <div class="table-container">
+        <table class="table-modern">
           <thead>
-            <tr class="text-left bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-              <th class="py-2 pr-4 font-medium">Date & Time</th>
-              <th class="py-2 pr-4 font-medium">Source</th>
-              <th class="py-2 pr-4 font-medium">IP Address</th>
-              <th class="py-2 pr-4 font-medium">Action</th>
-              <th class="py-2 pr-4 font-medium">Details</th>
-              <th class="py-2 pr-4 font-medium">Page</th>
+            <tr>
+              <th>Timestamp</th>
+              <th>Source</th>
+              <th>IP Client</th>
+              <th>Action Event</th>
+              <th>Details & Metadata</th>
+              <th>Origin View</th>
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($logs as $row): ?>
-              <tr class="border-b last:border-0 hover:bg-gray-50">
-                <td class="py-2 pr-4" data-label="Date & Time"><?php echo h($row['created_at']); ?></td>
-                <td class="py-2 pr-4" data-label="Source">
-                  <span class="px-2 py-0.5 rounded text-xs font-medium <?php echo $row['source'] === 'ip' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700'; ?>">
-                    <?php echo h($row['source']); ?>
-                  </span>
-                </td>
-                <td class="py-2 pr-4 font-mono text-xs" data-label="IP"><?php echo h($row['ip_address']); ?></td>
-                <td class="py-2 pr-4" data-label="Action"><?php echo h($actionLabels[$row['action']] ?? $row['action']); ?></td>
-                <td class="py-2 pr-4 text-gray-600 max-w-xs truncate" data-label="Details" title="<?php echo h($row['details']); ?>"><?php echo h($row['details']); ?></td>
-                <td class="py-2 pr-4 text-gray-500" data-label="Page"><?php echo h($row['page']); ?></td>
+            <?php if (empty($logs)): ?>
+              <tr>
+                <td colspan="6" class="text-center py-8 text-xs text-slate-400">No activity logs recorded matching criteria.</td>
               </tr>
-            <?php endforeach; ?>
-            <?php if (count($logs) === 0): ?>
-              <tr><td colspan="6" class="py-8 text-center text-gray-500">No log entries found.</td></tr>
+            <?php else: ?>
+              <?php foreach ($logs as $row): ?>
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['created_at']); ?></td>
+                  <td>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold <?php echo $row['source'] === 'ip' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700'; ?>">
+                      <?php echo h($row['source'] === 'ip' ? 'Remote IP' : 'Local'); ?>
+                    </span>
+                  </td>
+                  <td class="font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['ip_address']); ?></td>
+                  <td class="font-semibold text-slate-900 whitespace-nowrap"><?php echo h($actionLabels[$row['action']] ?? $row['action']); ?></td>
+                  <td class="text-xs text-slate-600 max-w-sm truncate" title="<?php echo h($row['details']); ?>"><?php echo h($row['details']); ?></td>
+                  <td class="font-mono text-xs text-slate-400 whitespace-nowrap"><?php echo h($row['page']); ?></td>
+                </tr>
+              <?php endforeach; ?>
             <?php endif; ?>
           </tbody>
         </table>
       </div>
 
+      <!-- Pagination Footer -->
       <?php if ($totalPages > 1): ?>
-      <div class="flex items-center justify-between mt-4 text-sm">
-        <div>Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?> (<?php echo (int)$count; ?> total)</div>
-        <div class="flex gap-2">
-          <?php if ($page > 1): ?>
-            <?php $q = http_build_query(array_filter(['action' => $filter_action, 'source' => $filter_source, 'date' => $filter_date, 'page' => $page - 1])); ?>
-            <a href="?<?php echo $q; ?>" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Prev</a>
-          <?php endif; ?>
-          <?php if ($page < $totalPages): ?>
-            <?php $q = http_build_query(array_filter(['action' => $filter_action, 'source' => $filter_source, 'date' => $filter_date, 'page' => $page + 1])); ?>
-            <a href="?<?php echo $q; ?>" class="px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">Next</a>
-          <?php endif; ?>
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div>Page <?php echo (int)$page; ?> of <?php echo (int)$totalPages; ?> (<?php echo (int)$count; ?> total entries)</div>
+          <div class="flex items-center gap-1">
+            <?php if ($page > 1): ?>
+              <?php $q = http_build_query(array_filter(['action' => $filter_action, 'source' => $filter_source, 'date' => $filter_date, 'page' => $page - 1])); ?>
+              <a href="?<?php echo $q; ?>" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Prev</a>
+            <?php endif; ?>
+            <?php if ($page < $totalPages): ?>
+              <?php $q = http_build_query(array_filter(['action' => $filter_action, 'source' => $filter_source, 'date' => $filter_date, 'page' => $page + 1])); ?>
+              <a href="?<?php echo $q; ?>" class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition-colors">Next</a>
+            <?php endif; ?>
+          </div>
         </div>
-      </div>
       <?php endif; ?>
     </div>
   </main>
-
-  <script>
-    document.getElementById('navToggle')?.addEventListener('click', function() {
-      document.getElementById('navMobile').classList.toggle('open');
-      this.setAttribute('aria-label', document.getElementById('navMobile').classList.contains('open') ? 'Close menu' : 'Open menu');
-    });
-    document.getElementById('navMobile')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
-    });
-  </script>
-</body>
-</html>
+  <?php include __DIR__ . '/includes/footer.php'; ?>

@@ -226,10 +226,27 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
       </div>
     </div>
 
+    <!-- Mobile-Only Form Toggle Banner -->
+    <div class="lg:hidden flex items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs mb-4">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="p-2 rounded-md bg-blue-50 text-[#0F3D87] shrink-0">
+          <i data-lucide="<?php echo $edit_schedule ? 'calendar-clock' : 'calendar-plus'; ?>" class="w-4 h-4"></i>
+        </div>
+        <div class="truncate">
+          <h2 class="text-xs font-bold text-slate-900 truncate"><?php echo $edit_schedule ? 'Edit Schedule Mode' : 'Create / Import Schedule'; ?></h2>
+          <p class="text-[11px] text-slate-500 truncate">Configure window or manage timelines</p>
+        </div>
+      </div>
+      <button type="button" id="toggleMobileSchedBtn" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#0F3D87] text-white text-xs font-semibold shadow-2xs hover:bg-blue-900 active:scale-[0.98] transition-all min-h-[40px] cursor-pointer">
+        <i data-lucide="<?php echo $edit_schedule ? 'edit' : 'plus'; ?>" id="toggleMobileSchedIcon" class="w-4 h-4"></i>
+        <span id="toggleMobileSchedText"><?php echo $edit_schedule ? 'Close' : 'New / Tools'; ?></span>
+      </button>
+    </div>
+
     <!-- Main Workspace -->
     <div class="grid lg:grid-cols-12 gap-6 items-stretch">
-      <!-- Left Column: Form & Tools (5 cols) -->
-      <div class="lg:col-span-5 space-y-6">
+      <!-- Left Column: Form & Tools (5 cols, collapsible on mobile) -->
+      <div id="schedFormsPanel" class="<?php echo $edit_schedule ? 'block' : 'hidden'; ?> lg:block lg:col-span-5 space-y-6">
         <!-- Create / Edit Form -->
         <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -369,7 +386,7 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
 
       <!-- Right Column: Schedules List Table (7 cols) -->
       <div class="lg:col-span-7 flex flex-col">
-        <div class="border border-slate-200 rounded-lg bg-white px-5 py-4 shadow-xs flex flex-col justify-between h-full space-y-4">
+        <div class="border border-slate-200 rounded-lg bg-white px-3 sm:px-5 py-4 shadow-xs flex flex-col justify-between h-full space-y-4">
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div class="flex items-center gap-2">
@@ -384,7 +401,7 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
               </div>
             </div>
 
-            <div class="table-container overflow-x-auto">
+            <div class="table-container table-sched-mobile overflow-x-auto">
               <table class="table-modern w-full">
                 <thead>
                   <tr class="select-none">
@@ -404,30 +421,30 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
                   <?php else: ?>
                     <?php foreach ($schedules as $s): ?>
                       <tr class="schedule-row" data-id="<?php echo (int)$s['id']; ?>">
-                        <td class="font-medium text-slate-900 schedule-title"><?php echo h($s['title']); ?></td>
-                        <td class="text-xs text-slate-600 whitespace-nowrap schedule-date"><?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></td>
-                        <td class="text-center whitespace-nowrap">
+                        <td class="sc-title font-medium text-slate-900 schedule-title"><?php echo h($s['title']); ?></td>
+                        <td class="sc-date text-xs text-slate-600 whitespace-nowrap schedule-date"><?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></td>
+                        <td class="sc-in text-center whitespace-nowrap">
                           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#0F3D87] font-mono">
-                            <?php echo h(date('g:i A', strtotime($s['time_in_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_in_end']))); ?>
+                            <span class="md:hidden font-sans text-[10px] text-blue-700">IN:</span> <?php echo h(date('g:i A', strtotime($s['time_in_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_in_end']))); ?>
                           </span>
                         </td>
-                        <td class="text-center whitespace-nowrap">
+                        <td class="sc-out text-center whitespace-nowrap">
                           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 font-mono">
-                            <?php echo h(date('g:i A', strtotime($s['time_out_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_out_end']))); ?>
+                            <span class="md:hidden font-sans text-[10px] text-amber-800">OUT:</span> <?php echo h(date('g:i A', strtotime($s['time_out_start']))); ?> - <?php echo h(date('g:i A', strtotime($s['time_out_end']))); ?>
                           </span>
                         </td>
-                        <td class="text-xs text-slate-600 whitespace-nowrap text-center font-medium">
-                          <?php echo (int)$s['late_minutes']; ?> min
+                        <td class="sc-grace text-xs text-slate-600 whitespace-nowrap text-center font-medium">
+                          <span class="md:hidden text-slate-400 font-normal">Grace: </span><?php echo (int)$s['late_minutes']; ?> min
                         </td>
-                        <td class="text-center">
+                        <td class="sc-actions text-center">
                           <div class="inline-flex items-center gap-2.5 justify-center">
-                            <a href="?edit_id=<?php echo (int)$s['id']; ?>" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Schedule" aria-label="Edit Schedule">
+                            <a href="?edit_id=<?php echo (int)$s['id']; ?>" class="text-blue-600 hover:text-blue-800 transition-colors p-1.5 inline-flex items-center justify-center cursor-pointer" title="Edit Schedule" aria-label="Edit Schedule">
                               <i data-lucide="pencil" class="w-4 h-4"></i>
                             </a>
                             <form method="post" class="inline" onsubmit="return confirm('Delete this schedule?');">
                               <input type="hidden" name="action" value="delete" />
                               <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
-                              <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Schedule" aria-label="Delete Schedule">
+                              <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-1.5 inline-flex items-center justify-center cursor-pointer" title="Delete Schedule" aria-label="Delete Schedule">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                               </button>
                             </form>
@@ -727,5 +744,25 @@ while ($row = $res->fetch_assoc()) { $schedules[] = $row; }
       overlay.appendChild(container);
       document.body.appendChild(overlay);
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleSchedBtn = document.getElementById('toggleMobileSchedBtn');
+      const schedPanel = document.getElementById('schedFormsPanel');
+      const toggleSchedText = document.getElementById('toggleMobileSchedText');
+      if (toggleSchedBtn && schedPanel) {
+        toggleSchedBtn.addEventListener('click', () => {
+          const isHidden = schedPanel.classList.contains('hidden');
+          if (isHidden) {
+            schedPanel.classList.remove('hidden');
+            if (toggleSchedText) toggleSchedText.textContent = 'Close';
+            schedPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            schedPanel.classList.add('hidden');
+            if (toggleSchedText) toggleSchedText.textContent = 'New / Tools';
+          }
+          if (window.refreshIcons) window.refreshIcons();
+        });
+      }
+    });
   </script>
   <?php include __DIR__ . '/includes/footer.php'; ?>

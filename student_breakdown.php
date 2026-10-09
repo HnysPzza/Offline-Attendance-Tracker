@@ -249,7 +249,7 @@ while ($row = $deptQuery->fetch_assoc()) {
                   <th>Code</th>
                   <th>Degree Program</th>
                   <th class="text-right">Students</th>
-                  <th class="text-right">Share</th>
+                  <th class="hidden sm:table-cell text-right">Share</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,14 +269,20 @@ while ($row = $deptQuery->fetch_assoc()) {
                 <tr>
                   <td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800"><?php echo $course; ?></span></td>
                   <td class="text-xs text-slate-700"><?php echo $courseNames[$course]; ?></td>
-                  <td class="text-right font-mono text-xs font-semibold text-slate-900"><?php echo $count; ?></td>
-                  <td class="text-right font-mono text-xs text-slate-600"><?php echo $percentage; ?>%</td>
+                  <td class="text-right font-mono text-xs font-semibold text-slate-900 whitespace-nowrap">
+                    <?php echo $count; ?>
+                    <span class="block text-[10px] font-normal text-slate-500 sm:hidden"><?php echo $percentage; ?>%</span>
+                  </td>
+                  <td class="hidden sm:table-cell text-right font-mono text-xs text-slate-600"><?php echo $percentage; ?>%</td>
                 </tr>
                 <?php endforeach; ?>
                 <tr class="bg-slate-50 font-bold border-t-2 border-slate-200">
                   <td colspan="2" class="text-slate-900">Total Enrolled</td>
-                  <td class="text-right font-mono text-slate-900"><?php echo $totalStudents; ?></td>
-                  <td class="text-right font-mono text-slate-900">100%</td>
+                  <td class="text-right font-mono text-slate-900 whitespace-nowrap">
+                    <?php echo $totalStudents; ?>
+                    <span class="block text-[10px] font-normal text-slate-500 sm:hidden">100%</span>
+                  </td>
+                  <td class="hidden sm:table-cell text-right font-mono text-slate-900">100%</td>
                 </tr>
               </tbody>
             </table>
@@ -332,7 +338,7 @@ while ($row = $deptQuery->fetch_assoc()) {
                 <tr>
                   <th>Department</th>
                   <th class="text-right">Students</th>
-                  <th class="text-right">Share</th>
+                  <th class="hidden sm:table-cell text-right">Share</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,8 +348,11 @@ while ($row = $deptQuery->fetch_assoc()) {
                 ?>
                 <tr>
                   <td class="font-medium text-slate-800"><?php echo h($dept); ?></td>
-                  <td class="text-right font-mono text-xs font-semibold text-slate-900"><?php echo $count; ?></td>
-                  <td class="text-right font-mono text-xs text-slate-600"><?php echo $percentage; ?>%</td>
+                  <td class="text-right font-mono text-xs font-semibold text-slate-900 whitespace-nowrap">
+                    <?php echo $count; ?>
+                    <span class="block text-[10px] font-normal text-slate-500 sm:hidden"><?php echo $percentage; ?>%</span>
+                  </td>
+                  <td class="hidden sm:table-cell text-right font-mono text-xs text-slate-600"><?php echo $percentage; ?>%</td>
                 </tr>
                 <?php endforeach; ?>
               </tbody>

@@ -177,26 +177,29 @@ if ($api === 'attendance') {
     $ps->execute();
     $res2 = $ps->get_result();
     $html = '';
+    $countRows = 0;
     while ($row = $res2->fetch_assoc()) {
+        $countRows++;
         $statusClass = $row['status'] === 'On Time' ? 'bg-emerald-50 text-emerald-700' : ($row['status'] === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600');
+        $lateText = ((int)$row['minutes_late'] > 0 ? (int)$row['minutes_late'] . 'm' : '');
         $html .= '<tr class="hover:bg-slate-50 transition-colors">'
-              . '<td class="whitespace-nowrap text-slate-600">' . h($row['schedule_date']) . '</td>'
-              . '<td class="font-medium text-slate-900">' . h($row['title']) . '</td>'
-              . '<td class="font-mono text-xs text-slate-600">' . h($row['sid']) . '</td>'
-              . '<td class="font-medium text-slate-900">' . h($row['name']) . '</td>'
-              . '<td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">' . h($row['course']) . '</span></td>'
-              . '<td>' . h($row['year_level']) . '</td>'
-              . '<td>' . h($row['section']) . '</td>'
-              . '<td>' . h($row['gender']) . '</td>'
-              . '<td class="text-xs text-slate-500">' . h($row['department']) . '</td>'
-              . '<td class="font-mono text-xs text-slate-700">' . h($row['time_in'] ?: '—') . '</td>'
-              . '<td class="font-mono text-xs text-slate-700">' . h($row['time_out'] ?: '—') . '</td>'
-              . '<td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold ' . $statusClass . '">' . h($row['status'] ?: '—') . '</span></td>'
-              . '<td class="text-xs text-slate-600">' . ((int)$row['minutes_late'] > 0 ? (int)$row['minutes_late'] . 'm' : '—') . '</td>'
+              . '<td class="att-hide whitespace-nowrap text-slate-600">' . h($row['schedule_date']) . '</td>'
+              . '<td class="att-sched font-medium text-slate-900">' . h($row['title']) . '<span class="md:hidden text-xs text-slate-400 font-normal ml-1.5">• ' . h($row['schedule_date']) . '</span></td>'
+              . '<td class="att-id font-mono text-xs text-slate-600">' . h($row['sid']) . '<span class="md:hidden font-sans font-medium text-slate-500 ml-1.5">• ' . h($row['course']) . ' ' . h($row['year_level']) . '-' . h($row['section']) . '</span></td>'
+              . '<td class="att-name font-medium text-slate-900">' . h($row['name']) . '</td>'
+              . '<td class="att-hide"><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">' . h($row['course']) . '</span></td>'
+              . '<td class="att-hide">' . h($row['year_level']) . '</td>'
+              . '<td class="att-hide">' . h($row['section']) . '</td>'
+              . '<td class="att-hide">' . h($row['gender']) . '</td>'
+              . '<td class="att-hide text-xs text-slate-500">' . h($row['department']) . '</td>'
+              . '<td class="att-timein font-mono text-xs text-slate-700">' . h($row['time_in'] ?: '—') . '</td>'
+              . '<td class="att-timeout font-mono text-xs text-slate-700">' . h($row['time_out'] ?: '—') . '</td>'
+              . '<td class="att-status"><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold ' . $statusClass . '">' . h($row['status'] ?: '—') . ($lateText ? ' <span class="ml-1 text-[10px] opacity-75">(' . $lateText . ')</span>' : '') . '</span></td>'
+              . '<td class="att-hide text-xs text-slate-600">' . ($lateText ?: '—') . '</td>'
               . '</tr>';
     }
     $ps->close();
-    echo json_encode([ 'html' => $html ]);
+    echo json_encode([ 'html' => $html, 'count' => $countRows ]);
     exit;
 }
 
@@ -292,8 +295,22 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
     </div>
 
     <?php if ($view === 'schedule'): ?>
-    <!-- Filter Toolbar Surface -->
-    <div class="border border-slate-200 rounded-lg bg-white p-4 shadow-xs space-y-4">
+    <!-- Mobile Filter Summary & Toggle Bar -->
+    <div class="md:hidden flex items-center justify-between gap-2.5 p-3.5 bg-white rounded-lg border border-slate-200 shadow-xs mb-3">
+      <div class="min-w-0">
+        <div class="text-xs font-bold text-slate-900 truncate">Attendance Filters</div>
+        <div class="text-[11px] text-slate-500 truncate" id="mobileFilterSummary">Date: <?php echo h($date); ?> • Found <strong class="text-slate-900"><?php echo count($rows); ?></strong> record(s)</div>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button type="button" id="toggleMobileAttFilterBtn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0F3D87] text-white text-xs font-semibold shadow-2xs hover:bg-blue-900 active:scale-[0.98] min-h-[38px] cursor-pointer">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <span id="toggleAttFilterText">Filters</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Toolbar Surface (Collapsible on mobile) -->
+    <div id="attFiltersContainer" class="hidden md:block border border-slate-200 rounded-lg bg-white p-4 shadow-xs space-y-4 mb-4">
       <form id="attFilters" method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 items-end text-xs">
         <input type="hidden" name="view" value="schedule" />
         <div>
@@ -372,8 +389,8 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
     </div>
 
     <!-- Attendance Table Surface -->
-    <div class="border border-slate-200 rounded-lg bg-white p-5 shadow-xs space-y-4">
-      <div class="table-container">
+    <div class="border border-slate-200 rounded-lg bg-white p-3 sm:p-5 shadow-xs space-y-4">
+      <div class="table-container table-attendance-mobile">
         <table class="table-modern">
           <thead>
             <tr>
@@ -399,21 +416,24 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>
-                <?php $statusClass = $r['status'] === 'On Time' ? 'bg-emerald-50 text-emerald-700' : ($r['status'] === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600'); ?>
+                <?php 
+                  $statusClass = $r['status'] === 'On Time' ? 'bg-emerald-50 text-emerald-700' : ($r['status'] === 'Late' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600'); 
+                  $lateText = ((int)$r['minutes_late'] > 0 ? (int)$r['minutes_late'] . 'm' : '');
+                ?>
                 <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="whitespace-nowrap text-slate-600"><?php echo h($r['schedule_date']); ?></td>
-                  <td class="font-medium text-slate-900"><?php echo h($r['title']); ?></td>
-                  <td class="font-mono text-xs text-slate-600"><?php echo h($r['sid']); ?></td>
-                  <td class="font-medium text-slate-900"><?php echo h($r['name']); ?></td>
-                  <td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($r['course']); ?></span></td>
-                  <td><?php echo h($r['year_level']); ?></td>
-                  <td><?php echo h($r['section']); ?></td>
-                  <td><?php echo h($r['gender']); ?></td>
-                  <td class="text-xs text-slate-500"><?php echo h($r['department']); ?></td>
-                  <td class="font-mono text-xs text-slate-700"><?php echo h($r['time_in'] ?: '—'); ?></td>
-                  <td class="font-mono text-xs text-slate-700"><?php echo h($r['time_out'] ?: '—'); ?></td>
-                  <td><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold <?php echo $statusClass; ?>"><?php echo h($r['status'] ?: '—'); ?></span></td>
-                  <td class="text-xs text-slate-600"><?php echo ((int)$r['minutes_late'] > 0 ? (int)$r['minutes_late'] . 'm' : '—'); ?></td>
+                  <td class="att-hide whitespace-nowrap text-slate-600"><?php echo h($r['schedule_date']); ?></td>
+                  <td class="att-sched font-medium text-slate-900"><?php echo h($r['title']); ?><span class="md:hidden text-xs text-slate-400 font-normal ml-1.5">• <?php echo h($r['schedule_date']); ?></span></td>
+                  <td class="att-id font-mono text-xs text-slate-600"><?php echo h($r['sid']); ?><span class="md:hidden font-sans font-medium text-slate-500 ml-1.5">• <?php echo h($r['course']); ?> <?php echo h($r['year_level']); ?>-<?php echo h($r['section']); ?></span></td>
+                  <td class="att-name font-medium text-slate-900"><?php echo h($r['name']); ?></td>
+                  <td class="att-hide"><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($r['course']); ?></span></td>
+                  <td class="att-hide"><?php echo h($r['year_level']); ?></td>
+                  <td class="att-hide"><?php echo h($r['section']); ?></td>
+                  <td class="att-hide"><?php echo h($r['gender']); ?></td>
+                  <td class="att-hide text-xs text-slate-500"><?php echo h($r['department']); ?></td>
+                  <td class="att-timein font-mono text-xs text-slate-700"><?php echo h($r['time_in'] ?: '—'); ?></td>
+                  <td class="att-timeout font-mono text-xs text-slate-700"><?php echo h($r['time_out'] ?: '—'); ?></td>
+                  <td class="att-status"><span class="inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold <?php echo $statusClass; ?>"><?php echo h($r['status'] ?: '—'); ?><?php if ($lateText): ?> <span class="ml-1 text-[10px] opacity-75">(<?php echo $lateText; ?>)</span><?php endif; ?></span></td>
+                  <td class="att-hide text-xs text-slate-600"><?php echo ($lateText ?: '—'); ?></td>
                 </tr>
               <?php endforeach; ?>
             <?php endif; ?>
@@ -492,6 +512,11 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
           if (bodyEl) {
             bodyEl.innerHTML = d.html || '<tr><td colspan="13" class="text-center py-8 text-xs text-slate-400">No records found for selected filters.</td></tr>'; 
           }
+          const mSum = document.getElementById('mobileFilterSummary');
+          if (mSum && d.count !== undefined) {
+            mSum.innerHTML = `Date: ${dateEl ? dateEl.value : ''} • Found <strong class="text-slate-900">${d.count}</strong> record(s)`;
+          }
+          if (window.refreshIcons) window.refreshIcons();
         })
         .catch(() => {});
     }
@@ -510,6 +535,25 @@ if (isset($_GET['export']) && $_GET['export'] === '1') {
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Mobile filter panel toggle
+      const toggleAttBtn = document.getElementById('toggleMobileAttFilterBtn');
+      const attFiltersBox = document.getElementById('attFiltersContainer');
+      const toggleAttText = document.getElementById('toggleAttFilterText');
+      if (toggleAttBtn && attFiltersBox) {
+        toggleAttBtn.addEventListener('click', () => {
+          const isHidden = attFiltersBox.classList.contains('hidden');
+          if (isHidden) {
+            attFiltersBox.classList.remove('hidden');
+            if (toggleAttText) toggleAttText.textContent = 'Hide';
+            attFiltersBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            attFiltersBox.classList.add('hidden');
+            if (toggleAttText) toggleAttText.textContent = 'Filters';
+          }
+          if (window.refreshIcons) window.refreshIcons();
+        });
+      }
+
       if (f) {
         let t1 = null, t2 = null, t3 = null;
         if (dateEl) dateEl.addEventListener('change', reloadSchedules);

@@ -117,3 +117,4 @@ $isLocal = function_exists('is_local_access') ? is_local_access() : true;
     <?php endif; ?>
   </nav>
 </header>
+<div id="navBackdrop" class="nav-backdrop" aria-hidden="true"></div>

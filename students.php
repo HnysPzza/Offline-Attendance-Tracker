@@ -464,10 +464,27 @@ $stmt->close();
       </div>
     </div>
 
+    <!-- Mobile-Only Add / Import Toggle Banner -->
+    <div class="lg:hidden flex items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="p-2 rounded-md bg-blue-50 text-[#0F3D87] shrink-0">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </div>
+        <div class="truncate">
+          <h2 class="text-xs font-bold text-slate-900 truncate">Add or Import Records</h2>
+          <p class="text-[11px] text-slate-500 truncate">Create student or batch upload file</p>
+        </div>
+      </div>
+      <button type="button" id="toggleMobileFormsBtn" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#0F3D87] text-white text-xs font-semibold shadow-2xs hover:bg-blue-900 active:scale-[0.98] transition-all min-h-[40px] cursor-pointer">
+        <i data-lucide="plus" id="toggleMobileFormsIcon" class="w-4 h-4"></i>
+        <span id="toggleMobileFormsText">Add / Import</span>
+      </button>
+    </div>
+
     <!-- Main Workspace (Clean 2-Column Grid) -->
     <div class="grid lg:grid-cols-12 gap-6 items-stretch">
-      <!-- Left Column: Add Student & Data Operations (4 Cols) -->
-      <div class="lg:col-span-4 space-y-6">
+      <!-- Left Column: Add Student & Data Operations (Collapsible on mobile) -->
+      <div id="studentFormsPanel" class="hidden lg:block lg:col-span-4 space-y-6">
         <!-- Add Student Form Surface -->
         <div class="border border-slate-200 rounded-lg bg-white p-5 space-y-4 shadow-xs">
           <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -575,21 +592,21 @@ $stmt->close();
       </div>
 
       <!-- Right Column: Student Directory Table & Filters (8 Cols) -->
-      <div class="lg:col-span-8 border border-slate-200 rounded-lg bg-white px-5 py-4 shadow-xs flex flex-col justify-between h-full">
+      <div class="lg:col-span-8 border border-slate-200 rounded-lg bg-white px-3 sm:px-5 py-4 shadow-xs flex flex-col justify-between h-full">
         <!-- Top Compact Toolbar (Search + Filters + Delete) -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
           <!-- Live Search Bar -->
           <div class="relative flex-1 min-w-[180px]">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
               <i data-lucide="search" class="w-4 h-4"></i>
             </div>
-            <input id="studentsSearch" type="search" placeholder="Search ID, Name, or class (e.g. BSIT 1-B)..." class="w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none transition-colors" />
+            <input id="studentsSearch" type="search" placeholder="Search ID, Name, or class (e.g. BSIT 1-B)..." class="w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0F3D87] focus:ring-1 focus:ring-[#0F3D87] outline-none transition-colors" />
             <button id="studentsSearchBtn" class="hidden">Search</button>
           </div>
 
           <!-- Compact Filter Controls -->
-          <div class="flex items-center gap-1.5 shrink-0">
-            <select id="deleteSectionCourse" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
+            <select id="deleteSectionCourse" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[36px]">
               <option value="">Course</option>
               <option value="BSIT">BSIT</option>
               <option value="BIT">BIT</option>
@@ -597,14 +614,14 @@ $stmt->close();
               <option value="BSED">BSED</option>
               <option value="BTLED">BTLED</option>
             </select>
-            <select id="deleteSectionYear" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+            <select id="deleteSectionYear" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[36px]">
               <option value="">Year</option>
               <option value="1">1st</option>
               <option value="2">2nd</option>
               <option value="3">3rd</option>
               <option value="4">4th</option>
             </select>
-            <select id="deleteSectionSection" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[32px]">
+            <select id="deleteSectionSection" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0F3D87] h-[36px]">
               <option value="">Sec</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -613,15 +630,15 @@ $stmt->close();
               <option value="C">C</option>
               <option value="D">D</option>
             </select>
-            <button id="deleteSectionBtn" type="button" title="Delete all students in selected section" class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shrink-0 h-[32px]">
+            <button id="deleteSectionBtn" type="button" title="Delete all students in selected section" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shrink-0 h-[36px] active:scale-[0.98]">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               <span>Delete</span>
             </button>
           </div>
         </div>
 
-        <!-- Modern Flat Student Table Container (Fitted, non-scrollable) -->
-        <div class="table-container overflow-x-auto">
+        <!-- Modern Flat Student Table Container (Fitted with mobile card layout) -->
+        <div class="table-container table-card-mobile overflow-x-auto">
           <table class="table-modern w-full">
             <thead>
               <tr class="select-none">
@@ -638,23 +655,30 @@ $stmt->close();
             <tbody id="studentsBody">
               <?php foreach ($students as $s): ?>
                 <tr data-id="<?php echo (int)$s['id']; ?>" data-student_id="<?php echo h($s['student_id']); ?>" data-name="<?php echo h($s['name']); ?>" data-course="<?php echo h($s['course']); ?>" data-year_level="<?php echo h($s['year_level']); ?>" data-section="<?php echo h($s['section']); ?>" data-gender="<?php echo h($s['gender']); ?>" data-department="<?php echo h($s['department']); ?>">
-                  <td class="font-mono text-xs font-semibold text-slate-600"><?php echo h($s['student_id']); ?></td>
-                  <td class="font-medium text-slate-900 text-sm"><?php echo h($s['name']); ?></td>
-                  <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($s['course']); ?></span></td>
-                  <td class="text-center font-medium text-slate-600"><?php echo h($s['year_level']); ?></td>
-                  <td class="text-center font-semibold text-slate-700"><?php echo h($s['section']); ?></td>
-                  <td class="text-slate-600 font-medium"><?php echo h($s['gender']); ?></td>
-                  <td class="text-slate-600 font-medium"><?php echo h($s['department']); ?></td>
-                  <td class="text-center">
-                    <div class="inline-flex items-center gap-2.5 justify-center">
-                      <button type="button" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
+                  <td class="cell-id font-mono text-xs font-semibold text-slate-600"><?php echo h($s['student_id']); ?></td>
+                  <td class="cell-name font-medium text-slate-900 text-sm"><?php echo h($s['name']); ?></td>
+                  <td class="cell-course">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
+                      <span><?php echo h($s['course']); ?></span>
+                      <span class="md:hidden ml-1 font-bold text-slate-800"><?php echo h($s['year_level']); ?>-<?php echo h($s['section']); ?></span>
+                    </span>
+                  </td>
+                  <td class="cell-year text-center font-medium text-slate-600"><?php echo h($s['year_level']); ?></td>
+                  <td class="cell-sec text-center font-semibold text-slate-700"><?php echo h($s['section']); ?></td>
+                  <td class="st-gender text-slate-600 font-medium"><?php echo h($s['gender']); ?></td>
+                  <td class="st-dept text-slate-600 font-medium"><?php echo h($s['department']); ?></td>
+                  <td class="mobile-actions text-center">
+                    <div class="inline-flex items-center gap-2 justify-center w-full">
+                      <button type="button" class="btn-icon-action btn-edit flex-1 md:flex-initial gap-1.5 px-3 py-2 md:p-0.5 rounded-md text-xs font-semibold cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
                         <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <span class="md:hidden">Edit</span>
                       </button>
-                      <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
+                      <form method="post" class="inline flex-1 md:flex-initial" onsubmit="return confirm('Delete this student?');">
                         <input type="hidden" name="action" value="delete" />
                         <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>" />
-                        <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Student" aria-label="Delete Student">
+                        <button type="submit" class="btn-icon-action btn-delete w-full gap-1.5 px-3 py-2 md:p-0.5 rounded-md text-xs font-semibold cursor-pointer" title="Delete Student" aria-label="Delete Student">
                           <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          <span class="md:hidden">Delete</span>
                         </button>
                       </form>
                     </div>
@@ -800,23 +824,30 @@ $stmt->close();
       function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
       function rowHtml(st){
         return `<tr data-id="${esc(st.id)}" data-student_id="${esc(st.student_id)}" data-name="${esc(st.name)}" data-course="${esc(st.course)}" data-year_level="${esc(st.year_level)}" data-section="${esc(st.section)}" data-gender="${esc(st.gender)}" data-department="${esc(st.department)}">
-          <td class="font-mono text-xs font-semibold text-slate-600">${esc(st.student_id)}</td>
-          <td class="font-medium text-slate-900 text-sm">${esc(st.name)}</td>
-          <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">${esc(st.course)}</span></td>
-          <td class="text-center font-medium text-slate-600">${esc(st.year_level)}</td>
-          <td class="text-center font-semibold text-slate-700">${esc(st.section)}</td>
-          <td class="text-slate-600 font-medium">${esc(st.gender)}</td>
-          <td class="text-slate-600 font-medium">${esc(st.department)}</td>
-          <td class="text-center">
-            <div class="inline-flex items-center gap-2.5 justify-center">
-              <button type="button" class="text-blue-600 hover:text-blue-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
+          <td class="cell-id font-mono text-xs font-semibold text-slate-600">${esc(st.student_id)}</td>
+          <td class="cell-name font-medium text-slate-900 text-sm">${esc(st.name)}</td>
+          <td class="cell-course">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
+              <span>${esc(st.course)}</span>
+              <span class="md:hidden ml-1 font-bold text-slate-800">${esc(st.year_level)}-${esc(st.section)}</span>
+            </span>
+          </td>
+          <td class="cell-year text-center font-medium text-slate-600">${esc(st.year_level)}</td>
+          <td class="cell-sec text-center font-semibold text-slate-700">${esc(st.section)}</td>
+          <td class="st-gender text-slate-600 font-medium">${esc(st.gender)}</td>
+          <td class="st-dept text-slate-600 font-medium">${esc(st.department)}</td>
+          <td class="mobile-actions text-center">
+            <div class="inline-flex items-center gap-2 justify-center w-full">
+              <button type="button" class="btn-icon-action btn-edit flex-1 md:flex-initial gap-1.5 px-3 py-2 md:p-0.5 rounded-md text-xs font-semibold cursor-pointer" title="Edit Student" aria-label="Edit Student" data-edit>
                 <i data-lucide="pencil" class="w-4 h-4"></i>
+                <span class="md:hidden">Edit</span>
               </button>
-              <form method="post" class="inline" onsubmit="return confirm('Delete this student?');">
+              <form method="post" class="inline flex-1 md:flex-initial" onsubmit="return confirm('Delete this student?');">
                 <input type="hidden" name="action" value="delete" />
                 <input type="hidden" name="id" value="${esc(st.id)}" />
-                <button type="submit" class="text-rose-600 hover:text-rose-800 transition-colors p-0.5 inline-flex items-center justify-center cursor-pointer" title="Delete Student" aria-label="Delete Student">
+                <button type="submit" class="btn-icon-action btn-delete w-full gap-1.5 px-3 py-2 md:p-0.5 rounded-md text-xs font-semibold cursor-pointer" title="Delete Student" aria-label="Delete Student">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <span class="md:hidden">Delete</span>
                 </button>
               </form>
             </div>
@@ -898,6 +929,30 @@ $stmt->close();
       if (editCourse) editCourse.addEventListener('change', ()=>{ const d=deptForCourse(editCourse.value); if(d && editDep.value!==d){ editDep.value=d; const keep=editCourse.value; refreshEditCourses(); editCourse.value=keep; }});
       load(1);
     })();
+
+    // Mobile forms accordion toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('toggleMobileFormsBtn');
+      const formsPanel = document.getElementById('studentFormsPanel');
+      const toggleIcon = document.getElementById('toggleMobileFormsIcon');
+      const toggleText = document.getElementById('toggleMobileFormsText');
+      if (toggleBtn && formsPanel) {
+        toggleBtn.addEventListener('click', () => {
+          const isHidden = formsPanel.classList.contains('hidden');
+          if (isHidden) {
+            formsPanel.classList.remove('hidden');
+            if (toggleText) toggleText.textContent = 'Hide Forms';
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-up');
+            formsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            formsPanel.classList.add('hidden');
+            if (toggleText) toggleText.textContent = 'Add / Import';
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'plus');
+          }
+          if (window.refreshIcons) window.refreshIcons();
+        });
+      }
+    });
   </script>
 
   <!-- Modal Dialog -->

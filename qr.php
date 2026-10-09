@@ -7,25 +7,135 @@ if (!is_local_access()) {
     exit;
 }
 
-// Detect the server's local IP address
-function get_local_ip() {
-    // Try SERVER_ADDR first (set by Apache/XAMPP)
-    $ip = $_SERVER['SERVER_ADDR'] ?? '';
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
-    // If it's localhost/loopback, try resolving the hostname
-    if (!$ip || $ip === '127.0.0.1' || $ip === '::1') {
-        $ip = gethostbyname(gethostname());
+// Detect host network interfaces and pick the active physical LAN/Wi-Fi IP
+function get_host_network() {
+    $interfaces = [];
+    $bestIp = '';
+
+    // 1. Outbound UDP route lookup (instant OS kernel routing lookup, zero packets transmitted)
+    $probes = ['8.8.8.8', '1.1.1.1', '208.67.222.222'];
+    foreach ($probes as $probe) {
+        $sock = @stream_socket_client("udp://{$probe}:53", $errno, $errstr, 1);
+        if ($sock) {
+            $sockName = stream_socket_get_name($sock, false);
+            if ($sockName) {
+                $probeIp = explode(':', $sockName)[0];
+                if (filter_var($probeIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && 
+                    !str_starts_with($probeIp, '127.') && 
+                    !str_starts_with($probeIp, '169.254.')) {
+                    $bestIp = $probeIp;
+                    fclose($sock);
+                    break;
+                }
+            }
+            fclose($sock);
+        }
     }
 
-    // Last resort fallback
-    if (!$ip || $ip === gethostname()) {
-        $ip = '127.0.0.1';
+    // 2. Parse Windows ipconfig to enumerate adapters and identify virtual vs physical
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        $output = @shell_exec('ipconfig 2>&1');
+        if ($output) {
+            $lines = explode("\n", $output);
+            $currentName = '';
+            $adapterType = '';
+
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (preg_match('/^(Ethernet adapter|Wireless LAN adapter)\s+([^:]+):$/i', $line, $m)) {
+                    $adapterType = $m[1];
+                    $currentName = trim($m[2]);
+                    if (!isset($interfaces[$currentName])) {
+                        $isVirtual = (bool)preg_match('/(vEthernet|WSL|Virtual|VMware|Hyper-V|Loopback|Npcap|docker|Bluetooth)/i', $currentName);
+                        $interfaces[$currentName] = [
+                            'name' => $currentName,
+                            'type' => $adapterType,
+                            'ip' => '',
+                            'gateway' => '',
+                            'is_virtual' => $isVirtual
+                        ];
+                    }
+                } elseif ($currentName && isset($interfaces[$currentName])) {
+                    if (preg_match('/IPv4 Address[.\s]+:\s*([0-9.]+)/i', $line, $m)) {
+                        $interfaces[$currentName]['ip'] = $m[1];
+                    } elseif (preg_match('/Default Gateway[.\s]+:\s*([0-9.]+)/i', $line, $m)) {
+                        $interfaces[$currentName]['gateway'] = $m[1];
+                    }
+                }
+            }
+        }
     }
 
-    return $ip;
+    // Filter valid IPv4 adapters
+    $validAdapters = [];
+    foreach ($interfaces as $name => $info) {
+        $ip = $info['ip'];
+        if ($ip && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && 
+            !str_starts_with($ip, '127.') && 
+            !str_starts_with($ip, '169.254.')) {
+            $validAdapters[$name] = $info;
+        }
+    }
+
+    // If bestIp matches a virtual adapter, discard it
+    if ($bestIp) {
+        foreach ($validAdapters as $info) {
+            if ($info['ip'] === $bestIp && $info['is_virtual']) {
+                $bestIp = '';
+                break;
+            }
+        }
+    }
+
+    // If still no bestIp, prioritize physical adapter with a default gateway (connected router)
+    if (!$bestIp) {
+        foreach ($validAdapters as $info) {
+            if (!$info['is_virtual'] && !empty($info['gateway'])) {
+                $bestIp = $info['ip'];
+                break;
+            }
+        }
+    }
+
+    // Fallback: any physical adapter without gateway
+    if (!$bestIp) {
+        foreach ($validAdapters as $info) {
+            if (!$info['is_virtual']) {
+                $bestIp = $info['ip'];
+                break;
+            }
+        }
+    }
+
+    // Fallback: SERVER_ADDR if not localhost
+    if (!$bestIp) {
+        $serverAddr = $_SERVER['SERVER_ADDR'] ?? '';
+        if ($serverAddr && $serverAddr !== '127.0.0.1' && $serverAddr !== '::1') {
+            $bestIp = $serverAddr;
+        } else {
+            $bestIp = '127.0.0.1';
+        }
+    }
+
+    return [
+        'best_ip' => $bestIp,
+        'adapters' => $validAdapters
+    ];
 }
 
-$localIp = get_local_ip();
+$networkInfo = get_host_network();
+$localIp = '';
+
+// Allow query param override if valid IPv4, else use best detected IP
+if (!empty($_GET['ip']) && filter_var($_GET['ip'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+    $localIp = $_GET['ip'];
+} else {
+    $localIp = $networkInfo['best_ip'];
+}
+
 $port = $_SERVER['SERVER_PORT'] ?? 80;
 $portSuffix = ($port == 80 || $port == 443) ? '' : ':' . $port;
 $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
@@ -67,12 +177,16 @@ $url = 'http://' . $localIp . $portSuffix . $basePath . '/index.php';
         <p class="text-xs text-slate-500 mt-0.5">Scan to access the CTU-Naga Attendance portal from local mobile devices.</p>
       </div>
 
-      <div class="flex items-center gap-2 no-print">
-        <button onclick="copyQrUrl()" id="copyBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-colors">
+      <div class="flex items-center gap-2 no-print flex-shrink-0">
+        <a href="qr.php" title="Refresh and auto-detect current network IP" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-colors whitespace-nowrap">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Re-detect IP</span>
+        </a>
+        <button onclick="copyQrUrl()" id="copyBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-colors whitespace-nowrap">
           <i data-lucide="copy" class="w-3.5 h-3.5" id="copyIcon"></i>
           <span id="copyText">Copy Link</span>
         </button>
-        <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0F3D87] hover:bg-[#0c316d] text-white text-xs font-semibold shadow-sm transition-colors">
+        <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0F3D87] hover:bg-[#0c316d] text-white text-xs font-semibold shadow-sm transition-colors whitespace-nowrap">
           <i data-lucide="printer" class="w-3.5 h-3.5"></i>
           <span>Print QR</span>
         </button>
@@ -87,6 +201,18 @@ $url = 'http://' . $localIp . $portSuffix . $basePath . '/index.php';
         <p class="text-xs text-slate-500 max-w-md">
           Point phone camera at this QR code to quickly log attendance on the campus network.
         </p>
+      </div>
+
+      <!-- Host Network Bar -->
+      <div class="w-full max-w-md no-print bg-slate-50 border border-slate-200 rounded-md px-3.5 py-2.5 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5 text-slate-600 font-medium">
+          <i data-lucide="wifi" class="w-4 h-4 text-[#0F3D87]"></i>
+          <span>Host Network:</span>
+        </div>
+        <div class="flex items-center gap-1.5 font-mono text-slate-800 font-semibold bg-white border border-slate-200 px-2.5 py-1 rounded text-xs shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+          <span><?php echo h($localIp); ?></span>
+        </div>
       </div>
 
       <!-- QR Display -->
@@ -106,13 +232,13 @@ $url = 'http://' . $localIp . $portSuffix . $basePath . '/index.php';
       </div>
 
       <!-- Instructions & Local Network Requirement Notice -->
-      <div class="w-full max-w-md border-l-4 border-amber-500 bg-amber-50/70 p-3.5 rounded-r-md text-amber-900 text-xs space-y-1">
-        <div class="font-semibold flex items-center gap-1.5">
-          <i data-lucide="wifi" class="w-3.5 h-3.5 text-amber-600"></i>
+      <div class="w-full max-w-md border border-slate-200 bg-slate-50 p-3.5 rounded-md text-slate-700 text-xs space-y-1">
+        <div class="font-semibold flex items-center gap-1.5 text-slate-800">
+          <i data-lucide="wifi" class="w-3.5 h-3.5 text-[#0F3D87]"></i>
           <span>Same Network Required</span>
         </div>
-        <p class="text-amber-800/90 leading-relaxed text-[11px]">
-          Mobile devices must be connected to the same Wi-Fi or LAN subnet (<span class="font-mono font-medium"><?php echo h($localIp); ?></span>) to communicate with this server.
+        <p class="text-slate-600 leading-relaxed text-[11px]">
+          Mobile devices must be connected to the same Wi-Fi or LAN subnet (<span class="font-mono font-medium text-slate-900"><?php echo h($localIp); ?></span>) to communicate with this server.
         </p>
       </div>
     </div>

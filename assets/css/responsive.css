@@ -21,15 +21,52 @@ html, body {
   background: #94a3b8;
 }
 
-/* Mobile Nav Drawer */
+/* Prevent iOS auto-zoom on input focus */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch targets & micro-interaction feedback (UI/UX Pro Max) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+button:active, a[role="button"]:active, [data-btn]:active {
+  transform: scale(0.98);
+  transition: transform 0.08s ease;
+}
+
+/* Safe area padding for mobile viewports */
+body.has-mobile-nav {
+  padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Mobile Nav Drawer & Backdrop */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 45;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.nav-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
 @media (max-width: 767px) {
   .nav-desktop { display: none !important; }
   .nav-mobile-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(255, 255, 255, 0.08);
@@ -62,10 +99,11 @@ html, body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
+    padding: 0.875rem 1.25rem;
     color: #e2e8f0;
     font-size: 0.875rem;
     font-weight: 500;
+    min-height: 44px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     transition: background 0.15s ease, color 0.15s ease;
   }
@@ -81,6 +119,58 @@ html, body {
 @media (min-width: 768px) {
   .nav-mobile-toggle { display: none !important; }
   .nav-mobile { display: none !important; }
+  .nav-backdrop { display: none !important; }
+}
+
+/* Mobile Bottom Navigation Bar (< 768px) */
+.mobile-bottom-nav {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(3.625rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  z-index: 40;
+  align-items: center;
+  justify-content: space-around;
+}
+@media (min-width: 768px) {
+  .mobile-bottom-nav { display: none !important; }
+}
+.mobile-bottom-nav a,
+.mobile-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: #64748b;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  gap: 0.2rem;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+  min-height: 44px;
+}
+.mobile-bottom-nav a:hover,
+.mobile-bottom-nav button:hover {
+  color: #0F3D87;
+}
+.mobile-bottom-nav a.active {
+  color: #0F3D87;
+}
+.mobile-bottom-nav a.active svg {
+  color: #0F3D87;
+  stroke-width: 2.3;
 }
 
 /* Modern Flat Table Container (Replacing Card-Heavy Layout) */
@@ -178,6 +268,433 @@ html, body {
 
 /* Touch targets */
 .touch-target {
-  min-height: 38px;
-  min-width: 38px;
+  min-height: 44px;
+  min-width: 44px;
 }
+
+/* Mobile Table-to-Card Responsive Transformation (< 768px) */
+@media (max-width: 767px) {
+  .table-card-mobile {
+    overflow-x: visible !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .table-card-mobile .table-modern {
+    display: block !important;
+    width: 100% !important;
+  }
+  .table-card-mobile .table-modern thead {
+    display: none !important;
+  }
+  .table-card-mobile .table-modern tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  .table-card-mobile .table-modern tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.875rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    row-gap: 0.35rem !important;
+    column-gap: 0.5rem !important;
+  }
+  .table-card-mobile .table-modern tbody td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .table-card-mobile td.cell-name {
+    grid-column: 1 / -1;
+    order: 1;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.3 !important;
+  }
+  .table-card-mobile td.cell-id {
+    grid-column: 1 / 2;
+    order: 2;
+    text-align: left !important;
+    font-size: 0.75rem !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+  }
+  .table-card-mobile td.cell-course {
+    grid-column: 2 / 3;
+    order: 2;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+  .table-card-mobile .table-modern tbody td.cell-year,
+  .table-card-mobile .table-modern tbody td.cell-sec,
+  .table-card-mobile .table-modern tbody td.st-gender,
+  .table-card-mobile .table-modern tbody td.st-dept,
+  .table-card-mobile .mobile-hide {
+    display: none !important;
+  }
+  .table-card-mobile td.mobile-actions {
+    grid-column: 1 / -1;
+    order: 4;
+    width: 100% !important;
+    padding-top: 0.625rem !important;
+    margin-top: 0.25rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+  }
+  .table-card-mobile td.mobile-actions .inline-flex {
+    display: flex !important;
+    width: 100% !important;
+    gap: 0.5rem !important;
+  }
+  .table-card-mobile td.mobile-actions form {
+    flex: 1 !important;
+    display: flex !important;
+  }
+  .table-card-mobile td.mobile-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.625rem 0.75rem !important;
+    transition: all 0.15s ease !important;
+  }
+  .table-card-mobile td.mobile-actions button:active {
+    transform: scale(0.98);
+  }
+  .table-card-mobile td.mobile-actions button.btn-edit {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: #0F3D87 !important;
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+  }
+  .table-card-mobile td.mobile-actions button.btn-edit:active {
+    background: #dbeafe !important;
+  }
+  .table-card-mobile td.mobile-actions button.btn-delete {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: #e11d48 !important;
+    background: #fff1f2 !important;
+    border: 1px solid #fecdd3 !important;
+  }
+  .table-card-mobile td.mobile-actions button.btn-delete:active {
+    background: #ffe4e6 !important;
+  }
+
+  /* Attendance Records Mobile Card Transformation (< 768px) */
+  .table-attendance-mobile {
+    overflow-x: visible !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .table-attendance-mobile .table-modern {
+    display: block !important;
+    width: 100% !important;
+  }
+  .table-attendance-mobile .table-modern thead {
+    display: none !important;
+  }
+  .table-attendance-mobile .table-modern tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  .table-attendance-mobile .table-modern tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.875rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    row-gap: 0.375rem !important;
+    column-gap: 0.5rem !important;
+  }
+  .table-attendance-mobile .table-modern tbody td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .table-attendance-mobile td.att-name {
+    grid-column: 1 / 2;
+    order: 1;
+    font-size: 0.9375rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.3 !important;
+  }
+  .table-attendance-mobile td.att-status {
+    grid-column: 2 / 3;
+    order: 1;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+  .table-attendance-mobile td.att-sched {
+    grid-column: 1 / -1;
+    order: 2;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+  }
+  .table-attendance-mobile td.att-id {
+    grid-column: 1 / -1;
+    order: 3;
+    font-size: 0.75rem !important;
+    color: #64748b !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  }
+  .table-attendance-mobile td.att-timein {
+    grid-column: 1 / 2;
+    order: 4;
+    padding-top: 0.5rem !important;
+    margin-top: 0.25rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    font-size: 0.75rem !important;
+    color: #047857 !important;
+    font-weight: 600 !important;
+    font-family: ui-monospace, monospace !important;
+  }
+  .table-attendance-mobile td.att-timein::before {
+    content: "IN: ";
+    font-size: 0.6875rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .table-attendance-mobile td.att-timeout {
+    grid-column: 2 / 3;
+    order: 4;
+    padding-top: 0.5rem !important;
+    margin-top: 0.25rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    text-align: right !important;
+    font-size: 0.75rem !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-family: ui-monospace, monospace !important;
+  }
+  .table-attendance-mobile td.att-timeout::before {
+    content: "OUT: ";
+    font-size: 0.6875rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .table-attendance-mobile .table-modern tbody td.att-hide {
+    display: none !important;
+  }
+
+  /* Schedules Table Mobile Card Transformation (< 768px) */
+  .table-sched-mobile {
+    overflow-x: visible !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .table-sched-mobile .table-modern {
+    display: block !important;
+    width: 100% !important;
+  }
+  .table-sched-mobile .table-modern thead {
+    display: none !important;
+  }
+  .table-sched-mobile .table-modern tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  .table-sched-mobile .table-modern tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.875rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    row-gap: 0.375rem !important;
+    column-gap: 0.5rem !important;
+  }
+  .table-sched-mobile .table-modern tbody td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .table-sched-mobile td.sc-title {
+    grid-column: 1 / 2;
+    order: 1;
+    font-size: 0.9375rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.3 !important;
+  }
+  .table-sched-mobile td.sc-date {
+    grid-column: 2 / 3;
+    order: 1;
+    text-align: right !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: #0F3D87 !important;
+  }
+  .table-sched-mobile td.sc-in {
+    grid-column: 1 / -1;
+    order: 2;
+    text-align: left !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+  }
+  .table-sched-mobile td.sc-out {
+    grid-column: 1 / -1;
+    order: 3;
+    text-align: left !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+  }
+  .table-sched-mobile td.sc-grace {
+    grid-column: 1 / 2;
+    order: 4;
+    font-size: 0.75rem !important;
+    color: #64748b !important;
+    padding-top: 0.375rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    margin-top: 0.25rem !important;
+  }
+  .table-sched-mobile td.sc-actions {
+    grid-column: 2 / 3;
+    order: 4;
+    text-align: right !important;
+    padding-top: 0.375rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    margin-top: 0.25rem !important;
+  }
+  .table-sched-mobile td.sc-actions .inline-flex {
+    justify-content: flex-end !important;
+    gap: 0.75rem !important;
+  }
+  .table-sched-mobile td.sc-actions a,
+  .table-sched-mobile td.sc-actions button {
+    min-height: 38px !important;
+    min-width: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.375rem !important;
+  }
+  .table-sched-mobile td.sc-actions a {
+    color: #0F3D87 !important;
+    background: #eff6ff !important;
+  }
+  .table-sched-mobile td.sc-actions button {
+    color: #e11d48 !important;
+    background: #fff1f2 !important;
+  }
+  /* Activity Logs Table Mobile Card Transformation (< 768px) */
+  .table-logs-mobile {
+    overflow-x: visible !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .table-logs-mobile .table-modern {
+    display: block !important;
+    width: 100% !important;
+  }
+  .table-logs-mobile .table-modern thead {
+    display: none !important;
+  }
+  .table-logs-mobile .table-modern tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  .table-logs-mobile .table-modern tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.875rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    row-gap: 0.375rem !important;
+    column-gap: 0.5rem !important;
+  }
+  .table-logs-mobile .table-modern tbody td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .table-logs-mobile td.log-action {
+    grid-column: 1 / 2;
+    order: 1;
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.3 !important;
+  }
+  .table-logs-mobile td.log-source {
+    grid-column: 2 / 3;
+    order: 1;
+    text-align: right !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+  .table-logs-mobile td.log-details {
+    grid-column: 1 / -1;
+    order: 2;
+    font-size: 0.8125rem !important;
+    color: #334155 !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+  .table-logs-mobile td.log-time {
+    grid-column: 1 / 2;
+    order: 3;
+    font-size: 0.6875rem !important;
+    color: #64748b !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    padding-top: 0.375rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    margin-top: 0.25rem !important;
+  }
+  .table-logs-mobile td.log-ip {
+    grid-column: 2 / 3;
+    order: 3;
+    text-align: right !important;
+    font-size: 0.6875rem !important;
+    color: #475569 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    padding-top: 0.375rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    margin-top: 0.25rem !important;
+  }
+  .table-logs-mobile .table-modern tbody td.log-page {
+    display: none !important;
+  }
+}
+

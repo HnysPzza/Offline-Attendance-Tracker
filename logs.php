@@ -142,7 +142,7 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
   <title>Activity Logs - Attendance Tracker</title>
   <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=<?php echo time(); ?>">
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
   <?php 
@@ -215,10 +215,10 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
 
       <!-- Filter Controls & Actions Bar -->
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 pb-3 border-b border-slate-100 text-xs">
-        <form method="get" class="flex flex-wrap items-end gap-3 flex-1">
-          <div>
+        <form method="get" class="grid grid-cols-1 sm:flex sm:flex-wrap sm:items-end gap-3 flex-1">
+          <div class="w-full sm:w-auto">
             <label class="block font-semibold text-slate-700 mb-1">Event Action</label>
-            <select name="action" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <select name="action" class="w-full sm:w-auto rounded-md border border-slate-300 bg-white px-3 py-2 sm:py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
               <option value="">All Actions</option>
               <?php foreach ($actionLabels as $k => $label): ?>
                 <option value="<?php echo h($k); ?>" <?php echo $filter_action === $k ? 'selected' : ''; ?>><?php echo h($label); ?></option>
@@ -226,35 +226,35 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
             </select>
           </div>
 
-          <div>
+          <div class="w-full sm:w-auto">
             <label class="block font-semibold text-slate-700 mb-1">Source Origin</label>
-            <select name="source" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <select name="source" class="w-full sm:w-auto rounded-md border border-slate-300 bg-white px-3 py-2 sm:py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
               <option value="">All Sources</option>
               <option value="local" <?php echo $filter_source === 'local' ? 'selected' : ''; ?>>Local Host</option>
               <option value="ip" <?php echo $filter_source === 'ip' ? 'selected' : ''; ?>>Network Device (IP)</option>
             </select>
           </div>
 
-          <div>
+          <div class="w-full sm:w-auto">
             <label class="block font-semibold text-slate-700 mb-1">Date</label>
-            <input type="date" name="date" value="<?php echo h($filter_date); ?>" class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
+            <input type="date" name="date" value="<?php echo h($filter_date); ?>" class="w-full sm:w-auto rounded-md border border-slate-300 bg-white px-3 py-2 sm:py-1.5 text-slate-900 focus:border-[#0F3D87] outline-none">
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold shadow-2xs transition-colors">
+          <div class="flex items-center gap-2 pt-1 sm:pt-0">
+            <button type="submit" class="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] text-white hover:bg-blue-900 font-semibold shadow-2xs transition-colors min-h-[42px] sm:min-h-0">
               <i data-lucide="filter" class="w-3.5 h-3.5"></i>
               <span>Filter</span>
             </button>
-            <a href="?page=1" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium transition-colors">
+            <a href="?page=1" class="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 sm:py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-medium transition-colors min-h-[42px] sm:min-h-0">
               <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
               <span>Clear</span>
             </a>
           </div>
         </form>
 
-        <form method="post" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL logs from the database. This action CANNOT be undone! Are you absolutely sure?');" class="self-start md:self-end">
+        <form method="post" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL logs from the database. This action CANNOT be undone! Are you absolutely sure?');" class="w-full md:w-auto self-start md:self-end">
           <input type="hidden" name="action" value="truncate_all_logs" />
-          <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold transition-colors">
+          <button type="submit" class="w-full md:w-auto justify-center inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold transition-colors min-h-[42px] sm:min-h-0">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             <span>Truncate All Logs</span>
           </button>
@@ -262,7 +262,7 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
       </div>
 
       <!-- Logs Table -->
-      <div class="table-container">
+      <div class="table-container table-logs-mobile">
         <table class="table-modern">
           <thead>
             <tr>
@@ -282,16 +282,16 @@ $loginStats['unique_students'] = (int)$row['unique_count'];
             <?php else: ?>
               <?php foreach ($logs as $row): ?>
                 <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['created_at']); ?></td>
-                  <td>
+                  <td class="log-time font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['created_at']); ?></td>
+                  <td class="log-source">
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold <?php echo $row['source'] === 'ip' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700'; ?>">
                       <?php echo h($row['source'] === 'ip' ? 'Remote IP' : 'Local'); ?>
                     </span>
                   </td>
-                  <td class="font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['ip_address']); ?></td>
-                  <td class="font-semibold text-slate-900 whitespace-nowrap"><?php echo h($actionLabels[$row['action']] ?? $row['action']); ?></td>
-                  <td class="text-xs text-slate-600 max-w-sm truncate" title="<?php echo h($row['details']); ?>"><?php echo h($row['details']); ?></td>
-                  <td class="font-mono text-xs text-slate-400 whitespace-nowrap"><?php echo h($row['page']); ?></td>
+                  <td class="log-ip font-mono text-xs text-slate-600 whitespace-nowrap"><?php echo h($row['ip_address']); ?></td>
+                  <td class="log-action font-semibold text-slate-900 whitespace-nowrap"><?php echo h($actionLabels[$row['action']] ?? $row['action']); ?></td>
+                  <td class="log-details text-xs text-slate-600 max-w-sm truncate" title="<?php echo h($row['details']); ?>"><?php echo h($row['details']); ?></td>
+                  <td class="log-page font-mono text-xs text-slate-400 whitespace-nowrap"><?php echo h($row['page']); ?></td>
                 </tr>
               <?php endforeach; ?>
             <?php endif; ?>

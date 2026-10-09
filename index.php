@@ -319,8 +319,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
         </div>
       </div>
 
-      <!-- Modern Flat Students Table -->
-      <div class="table-container">
+      <!-- Modern Flat Students Table (Responsive Cards on Mobile) -->
+      <div class="table-container table-card-mobile">
         <table class="table-modern w-full">
           <thead>
             <tr>
@@ -329,30 +329,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
               <th class="w-24 text-left">Course</th>
               <th class="w-16 text-center">Year</th>
               <th class="w-20 text-center">Section</th>
-              <th class="w-24 text-left">Gender</th>
-              <th class="w-36 text-left">Department</th>
+              <th class="w-24 text-left hidden md:table-cell">Gender</th>
+              <th class="w-36 text-left hidden md:table-cell">Department</th>
               <th class="w-64 text-center">Actions</th>
             </tr>
           </thead>
           <tbody id="studentsBody">
             <?php foreach ($quickStudents as $st): ?>
               <tr data-student="<?php echo h($st['student_id']); ?>">
-                <td class="font-mono text-xs font-semibold text-slate-600"><?php echo h($st['student_id']); ?></td>
-                <td class="font-medium text-slate-900 text-sm"><?php echo h($st['name']); ?></td>
-                <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700"><?php echo h($st['course']); ?></span></td>
-                <td class="text-center font-medium text-slate-600"><?php echo h($st['year_level']); ?></td>
-                <td class="text-center font-semibold text-slate-700"><?php echo h($st['section']); ?></td>
-                <td class="text-slate-600 font-medium"><?php echo h($st['gender']); ?></td>
-                <td class="text-slate-600 font-medium"><?php echo h($st['department']); ?></td>
-                <td class="text-center">
+                <td class="font-mono text-xs font-semibold text-slate-500 cell-id st-id"><?php echo h($st['student_id']); ?></td>
+                <td class="font-medium text-slate-900 text-sm cell-name st-name"><?php echo h($st['name']); ?></td>
+                <td class="cell-course"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#0F3D87] border border-blue-200/60 st-course"><?php echo h($st['course']); ?></span></td>
+                <td class="text-center font-medium text-slate-600 cell-year st-year"><?php echo h($st['year_level']); ?></td>
+                <td class="text-center font-semibold text-slate-700 cell-sec st-sec"><?php echo h($st['section']); ?></td>
+                <td class="text-slate-600 font-medium st-gender hidden md:table-cell"><?php echo h($st['gender']); ?></td>
+                <td class="text-slate-600 font-medium st-dept hidden md:table-cell"><?php echo h($st['department']); ?></td>
+                <td class="text-center mobile-actions">
                   <div class="inline-flex items-center gap-2 justify-center flex-nowrap">
                     <form method="post" data-quick="1" class="inline">
                       <input type="hidden" name="student_id" value="<?php echo h($st['student_id']); ?>" />
                       <input type="hidden" name="schedule_id" value="" />
                       <input type="hidden" name="q" value="<?php echo h($q); ?>" />
                       <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
-                      <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                      <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
+                        <i data-lucide="clock" class="w-4 h-4"></i>
                         <span class="whitespace-nowrap">Time In</span>
                       </button>
                     </form>
@@ -361,8 +361,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
                       <input type="hidden" name="schedule_id" value="" />
                       <input type="hidden" name="q" value="<?php echo h($q); ?>" />
                       <input type="hidden" name="page" value="<?php echo (int)$page; ?>" />
-                      <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
-                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                      <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
                         <span class="whitespace-nowrap">Time Out</span>
                       </button>
                     </form>
@@ -374,22 +374,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
         </table>
         <template id="studentRowTemplate">
           <tr data-student="">
-            <td class="font-mono text-xs font-semibold text-slate-600 st-id"></td>
-            <td class="font-medium text-slate-900 text-sm st-name"></td>
-            <td><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 st-course"></span></td>
-            <td class="text-center font-medium text-slate-600 st-year"></td>
-            <td class="text-center font-semibold text-slate-700 st-sec"></td>
-            <td class="text-slate-600 font-medium st-gender"></td>
-            <td class="text-slate-600 font-medium st-dept"></td>
-            <td class="text-center">
+            <td class="font-mono text-xs font-semibold text-slate-500 cell-id st-id"></td>
+            <td class="font-medium text-slate-900 text-sm cell-name st-name"></td>
+            <td class="cell-course"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#0F3D87] border border-blue-200/60 st-course"></span></td>
+            <td class="text-center font-medium text-slate-600 cell-year st-year"></td>
+            <td class="text-center font-semibold text-slate-700 cell-sec st-sec"></td>
+            <td class="text-slate-600 font-medium st-gender hidden md:table-cell"></td>
+            <td class="text-slate-600 font-medium st-dept hidden md:table-cell"></td>
+            <td class="text-center mobile-actions">
               <div class="inline-flex items-center gap-2 justify-center flex-nowrap">
                 <form method="post" data-quick="1" class="inline">
                   <input type="hidden" name="student_id" value="" />
                   <input type="hidden" name="schedule_id" value="" />
                   <input type="hidden" name="q" value="" />
                   <input type="hidden" name="page" value="" />
-                  <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
-                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <button name="action" value="time_in" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold whitespace-nowrap text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors touch-target shadow-2xs" data-btn="in">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
                     <span class="whitespace-nowrap">Time In</span>
                   </button>
                 </form>
@@ -398,8 +398,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['ajax'] ?? '') === '1' || 
                   <input type="hidden" name="schedule_id" value="" />
                   <input type="hidden" name="q" value="" />
                   <input type="hidden" name="page" value="" />
-                  <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
-                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                  <button name="action" value="time_out" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold whitespace-nowrap text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors touch-target shadow-2xs" data-btn="out">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
                     <span class="whitespace-nowrap">Time Out</span>
                   </button>
                 </form>

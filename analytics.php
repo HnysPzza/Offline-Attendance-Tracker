@@ -186,6 +186,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 }
 
 // Get all schedules
+$selected_schedule_id = intval($_GET['schedule_id'] ?? 0);
 $schedules = [];
 $res = $db->query('SELECT id, title, schedule_date FROM schedules ORDER BY schedule_date DESC');
 while ($row = $res->fetch_assoc()) {
@@ -201,7 +202,7 @@ while ($row = $res->fetch_assoc()) {
   <link rel="icon" type="image/jpg" href="assets/logo.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=<?php echo time(); ?>">
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
   <?php 
@@ -216,8 +217,8 @@ while ($row = $res->fetch_assoc()) {
         <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Attendance Analytics</h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Session turnout, punctuality breakdown, and course-by-course performance charts.</p>
       </div>
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <a href="student_breakdown.php" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0F3D87] hover:bg-blue-900 text-white text-xs font-semibold shadow-2xs transition-colors">
+      <div class="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
+        <a href="student_breakdown.php" class="w-full sm:w-auto justify-center inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md bg-[#0F3D87] hover:bg-blue-900 text-white text-xs font-semibold shadow-2xs transition-colors min-h-[42px] sm:min-h-0">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
           <span>Student Breakdown</span>
         </a>
@@ -227,12 +228,12 @@ while ($row = $res->fetch_assoc()) {
     <!-- Controls & Filters Surface -->
     <div class="border border-slate-200 rounded-lg bg-white p-4 shadow-xs">
       <div class="flex flex-col md:flex-row md:items-end gap-3 text-xs">
-        <div class="flex-1">
+        <div class="flex-1 w-full">
           <label class="block font-semibold text-slate-700 mb-1">Select Schedule *</label>
           <select id="scheduleSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-[#0F3D87] outline-none">
             <option value="">-- Choose a schedule session --</option>
             <?php foreach ($schedules as $s): ?>
-              <option value="<?php echo (int)$s['id']; ?>"><?php echo h($s['title']); ?> — <?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></option>
+              <option value="<?php echo (int)$s['id']; ?>" <?php echo $selected_schedule_id === (int)$s['id'] ? 'selected' : ''; ?>><?php echo h($s['title']); ?> — <?php echo h(date('M j, Y', strtotime($s['schedule_date']))); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -247,8 +248,8 @@ while ($row = $res->fetch_assoc()) {
             <option value="BSED">BSED</option>
           </select>
         </div>
-        <div class="flex items-center gap-2 self-end">
-          <button type="button" id="exportBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors">
+        <div class="w-full md:w-auto flex items-center gap-2 self-stretch md:self-end">
+          <button type="button" id="exportBtn" class="w-full md:w-auto justify-center inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors min-h-[42px] md:min-h-0">
             <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
             <span>Export CSV</span>
           </button>
@@ -520,6 +521,9 @@ while ($row = $res->fetch_assoc()) {
       courses.forEach(course => {
         createChart(course.toLowerCase(), course);
       });
+      if (document.getElementById('scheduleSelect').value) {
+        loadAnalytics();
+      }
     });
   </script>
   <?php include __DIR__ . '/includes/footer.php'; ?>

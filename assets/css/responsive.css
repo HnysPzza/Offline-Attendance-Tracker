@@ -392,6 +392,11 @@ body.has-mobile-nav {
     background: #ffe4e6 !important;
   }
 
+  /* Student Accordion Toggle Chevron */
+  [data-toggle].is-open .toggle-chevron {
+    transform: rotate(180deg);
+  }
+
   /* Attendance Records Mobile Card Transformation (< 768px) */
   .table-attendance-mobile {
     overflow-x: visible !important;
